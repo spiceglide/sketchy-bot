@@ -12,9 +12,14 @@ PREFIX = os.getenv('SKETCHY_PREFIX')
 REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
 SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
+ROLES_COLOR_MESSAGE = int(os.getenv('SKETCHY_ROLES_COLOR_MESSAGE'))
+ROLES_EVENTS_MESSAGE = int(os.getenv('SKETCHY_ROLES_EVENTS_MESSAGE'))
+ROLES_PRONOUNS_MESSAGE = int(os.getenv('SKETCHY_ROLES_PRONOUNS_MESSAGE'))
+
 
 intents = discord.Intents.default()
 intents.members = True
+intents.reactions = True
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
@@ -63,6 +68,15 @@ async def on_message(message):
 
     # Process any commands
     await bot.process_commands(message)
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    if payload.message_id == ROLES_COLOR_MESSAGE:
+        pass
+    elif payload.message_id == ROLES_EVENTS_MESSAGE:
+        pass
+    elif payload.message_id == ROLES_PRONOUNS_MESSAGE:
+        pass
 
 @bot.command()
 async def ban(ctx):
