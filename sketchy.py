@@ -42,4 +42,16 @@ async def on_member_join(member):
     dm = await member.create_dm()
     await dm.send('Welcome to Sketchspace!')
 
+@bot.command()
+async def ban(ctx):
+    await ctx.send('Sorry! Banning is not implemented yet')
+
+@bot.command()
+async def kick(ctx):
+    await ctx.send('Sorry! Kicking is not implemented yet')
+
+@bot.command()
+async def mute(ctx):
+    await ctx.send('Sorry! Muting is not implemented yet')
+
 bot.run(TOKEN)
