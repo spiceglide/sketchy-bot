@@ -10,6 +10,7 @@ TOKEN = os.getenv('SKETCHY_TOKEN')
 GUILD = int(os.getenv('SKETCHY_GUILD'))
 PREFIX = os.getenv('SKETCHY_PREFIX')
 REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
+SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
 
 intents = discord.Intents.default()
@@ -52,6 +53,10 @@ async def on_message(message):
             channel = bot.get_channel(REPORTS_CHANNEL)
             await channel.send(f'>>> {message.content}')
             await message.add_reaction('👍')
+    # Suggestions
+    elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):
+        await message.add_reaction('👍')
+        await message.add_reaction('👎')
 
     # Process any commands
     await bot.process_commands(message)
