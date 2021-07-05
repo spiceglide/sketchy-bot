@@ -57,6 +57,9 @@ async def on_message(message):
     elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):
         await message.add_reaction('👍')
         await message.add_reaction('👎')
+    # Mentions
+    elif bot.user.mentioned_in(message):
+        await message.add_reaction('🤍')
 
     # Process any commands
     await bot.process_commands(message)
