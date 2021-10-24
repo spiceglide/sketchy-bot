@@ -95,7 +95,7 @@ async def on_ready():
             embed = discord.Embed(title=autorole['title'])
 
             for emoji, description in zip(autorole['reactions'], autorole['descriptions']):
-                embed.add_field(name=emoji, value=description, inline=False)
+                embed.add_field(name=emoji, value=description)
 
             channel = bot.get_channel(ROLES_CHANNEL)
             message = await channel.send(embed=embed)
