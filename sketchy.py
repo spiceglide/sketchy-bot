@@ -252,7 +252,7 @@ async def role(ctx, color, *name):
 
     logging.info(f'Role for member {ctx.author} updated')
 
-@bot.command()
+@bot.command(aliases=['connect', 'c'])
 async def join(ctx):
     if ctx.message.author.voice:
         channel = ctx.message.author.voice.channel
@@ -260,7 +260,7 @@ async def join(ctx):
     else:
         await ctx.send("What do you want me to join?")
 
-@bot.command()
+@bot.command(aliases=['disconnect', 'dc'])
 async def leave(ctx):
     client = ctx.message.guild.voice_client
     if client.is_connected():
@@ -268,7 +268,7 @@ async def leave(ctx):
     else:
         await ctx.send("What do you want me to leave?")
 
-@bot.command()
+@bot.command(aliases=['p'])
 async def play(ctx, *link):
     link = ' '.join(link)
     client = ctx.message.guild.voice_client
@@ -302,7 +302,7 @@ async def pause(ctx):
     else:
         await ctx.send("There's nothing to pause")
 
-@bot.command()
+@bot.command(aliases=['unpause'])
 async def resume(ctx):
     client = ctx.message.guild.voice_client
     if not client.is_playing():
@@ -311,7 +311,7 @@ async def resume(ctx):
     else:
         await ctx.send("There's nothing to resume")
 
-@bot.command()
+@bot.command(aliases=['q'])
 async def queue(ctx):
     queue = music.get_queue()
 
@@ -323,18 +323,18 @@ async def queue(ctx):
 
     await ctx.send(embed=embed)
 
-@bot.command()
+@bot.command(aliases=['l'])
 async def loop(ctx):
     music.toggle_loop()
     status = "ON" if music.is_looping() else "OFF"
     await ctx.send(f"Loop is {status}")
 
-@bot.command()
+@bot.command(aliases=['s'])
 async def skip(ctx):
     client = ctx.message.guild.voice_client
     client.stop()
 
-@bot.command()
+@bot.command(aliases=['s2'])
 async def skipto(ctx, number):
     client = ctx.message.guild.voice_client
     client.stop()
