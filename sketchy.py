@@ -183,6 +183,8 @@ async def mute(ctx, member: discord.Member):
 @bot.command()
 @commands.has_permissions(kick_members=True)
 async def warn(ctx, member: discord.Member, *reason):
+    reason = ' '.join(reason)
+
     embed = discord.Embed(title='Warning', description=f'{member.name} has been warned.')
     embed.add_field(name='Reason', value=reason)
     await ctx.send(embed=embed)
