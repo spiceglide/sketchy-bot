@@ -364,6 +364,8 @@ async def now_playing(ctx):
 async def loop(ctx):
     async with ctx.channel.typing():
         music.loop = not music.loop
+        music.loop_queue = False
+        music.shuffle = False
 
     song = music.queue[0]
     status = 'Looping' if music.loop else 'Stopped looping'
@@ -377,6 +379,8 @@ async def loop(ctx):
 async def loop_queue(ctx):
     async with ctx.channel.typing():
         music.loop_queue = not music.loop_queue
+        music.loop = False
+        music.shuffle = False
 
     status = 'Looping' if music.loop_queue else 'Stopped looping'
     embed = extra.create_embed({
@@ -388,6 +392,8 @@ async def loop_queue(ctx):
 @bot.command()
 async def shuffle(ctx):
     music.shuffle = not music.shuffle
+    music.loop = False
+    music.loop_queue = False
 
     status = 'Shuffling' if music.shuffle else 'Stopped shuffling'
     embed = extra.create_embed({
@@ -426,6 +432,15 @@ async def jump(ctx, number):
     embed = extra.create_embed({
         'title': 'Queue',
         'description': f'Skipped to [{song["title"]}]({song["webpage_url"]})'
+    })
+    await ctx.send(embed=embed)
+
+@bot.command(aliases=['rm', 'x'])
+async def remove(ctx, number):
+    song = music.queue.pop(int(number))
+    embed = extra.create_embed({
+        'title': 'Queue',
+        'description': f'Removed [{song["title"]}]({song["webpage_url"]})'
     })
     await ctx.send(embed=embed)
 
