@@ -4,11 +4,6 @@ from extra import has_url
 from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
 
-async def run_blocking(blocking_func, *args, **kwargs):
-    """Runs a blocking function in a non-blocking way"""
-    func = functools.partial(blocking_func, *args, **kwargs)
-    return await client.loop.run_in_executor(None, func)
-
 class Music:
     def __init__(self, path):
         self.path = path
