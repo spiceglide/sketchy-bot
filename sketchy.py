@@ -105,9 +105,6 @@ async def on_message(message):
 
 @bot.event
 async def on_guild_role_delete(role):
-    connection = sqlite3.connect(SETTINGS['database_path'])
-    cursor = connection.cursor()
-
     with db(SETTINGS['database_path']) as cursor:
         role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
         if role_is_relevant[0] != 0:
@@ -124,9 +121,7 @@ async def on_raw_reaction_add(payload):
     guild = bot.get_guild(SETTINGS['guild'])
     data = extra.get_autorole_data(payload.message_id, AUTOROLES)
     role = extra.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
-
     await payload.member.add_roles(role)
-
 
 @bot.event
 async def on_raw_reaction_remove(payload):
@@ -202,15 +197,11 @@ async def role(ctx, color, *name):
     name = ' '.join(name)
     color = extra.hex_to_color(color)
 
-    connection = sqlite3.connect(SETTINGS['database_path'])
-    cursor = connection.cursor()
-
     with db(SETTINGS['database_path']) as cursor:
         role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
         # If no assigned role, create a new one
         if role_assigned[0] == None:
             role = await ctx.guild.create_role(name=name, color=color)
-
             old_role = None
             new_role = role
 
@@ -225,18 +216,15 @@ async def role(ctx, color, *name):
             cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
         else:
             role = ctx.guild.get_role(role_assigned[0])
-
             old_role = copy(role)
 
             if name == '':
                 await role.edit(color=color)
             else:
                 await role.edit(name=name, color=color)
-
             new_role = role
 
         summary = extra.compare_roles(old_role, new_role)
-
         embed = extra.create_embed({
             'title': 'Role update',
             'Name': summary['name'],
