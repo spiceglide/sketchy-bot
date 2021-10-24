@@ -1,8 +1,11 @@
-import os
 from extra import has_url
 
+import os
+from asyncio import sleep
+from multiprocessing import Process
+
 from discord import FFmpegPCMAudio
-from youtube_dl import YoutubeDL
+from yt_dlp import YoutubeDL
 
 class Music:
     def __init__(self, path):
@@ -21,10 +24,12 @@ class Music:
                 info = ydl.extract_info(link)
             else:
                 info = ydl.extract_info(f'ytsearch1:{link}')['entries'][0]
-
             self.queue.append(info)
-            ydl.download([info['webpage_url']])
-            return info
+
+            download_process = Process(target=ydl.download, args=([info['webpage_url']],))
+            download_process.start()
+
+        return info
         
     def dequeue(self):
         song = self.queue.pop(0)
@@ -34,7 +39,15 @@ class Music:
     
     def play(self):
         current_song = self.queue[0]
-        return FFmpegPCMAudio(f'{self.path}/{current_song["id"]}', options=self.ffmpeg_options)
+        song_path = f'{self.path}/{current_song["id"]}'
+
+        while True:
+            if os.path.exists(song_path):
+                break
+            elif os.path.exists(f'{song_path}.part'):
+                sleep(5)
+
+        return FFmpegPCMAudio(song_path, options=self.ffmpeg_options)
 
     def clear(self):
         self.queue = []
