@@ -202,7 +202,7 @@ async def approve(ctx, member: discord.Member):
 
     if member.bot:
         await member.add_roles(bot_role)
-    else
+    else:
         await member.add_roles(verified_role, notify_role)
 
     await ctx.message.add_reaction('👍')
