@@ -10,6 +10,7 @@ class Music:
         self.queue = []
         self.loop = False
         self.loop_queue = False
+        self.skipping = False
 
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
         self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{path}/%(id)s', 'quiet': True}
@@ -35,10 +36,6 @@ class Music:
         current_song = self.queue[0]
         return FFmpegPCMAudio(f'{self.path}/{current_song["id"]}', options=self.ffmpeg_options)
 
-    def skip(self):
-        self.dequeue()
-        self.play()
-    
     def clear(self):
         self.queue = []
         for file in os.listdir(self.path):

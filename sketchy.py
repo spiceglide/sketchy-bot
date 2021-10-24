@@ -287,7 +287,11 @@ async def play(ctx, *link):
             audio = music.play()
             client.play(audio, after=next)
         else:
-            music.dequeue()
+            if music.skipping:
+                music.skipping = False
+            else:
+                music.dequeue()
+
             if len(queue) > 0:
                 audio = music.play()
                 client.play(audio, after=next)
@@ -347,13 +351,12 @@ async def loop(ctx):
     async with ctx.channel.typing():
         music.toggle_loop()
 
-    status = 'Looping' if music.is_looping() else 'Stopped looping'
     song = music.get_queue()[0]
-    if music.is_looping():
-        embed = extra.create_embed({
-            'title': 'Queue',
-            'description': f'{status} [{song["title"]}]({song["webpage_url"]})'
-        })
+    status = 'Looping' if music.is_looping() else 'Stopped looping'
+    embed = extra.create_embed({
+        'title': 'Queue',
+        'description': f'{status} [{song["title"]}]({song["webpage_url"]})'
+    })
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['lq'])
@@ -370,11 +373,14 @@ async def loop_queue(ctx):
 
 @bot.command(aliases=['s'])
 async def skip(ctx):
+    song = music.get_queue()[0]
+    music.skipping = True
+
     async with ctx.channel.typing():
         client = ctx.message.guild.voice_client
+        music.dequeue()
         client.stop()
 
-    song = music.get_queue()[0]
     embed = extra.create_embed({
         'title': 'Queue',
         'description': f'Skipped [{song["title"]}]({song["webpage_url"]})'
@@ -383,11 +389,13 @@ async def skip(ctx):
 
 @bot.command(aliases=['j'])
 async def jump(ctx, number):
+    music.skipping = True
+
     async with ctx.channel.typing():
         client = ctx.message.guild.voice_client
+        for skip in range(int(number)):
+            music.dequeue()
         client.stop()
-        for skip in number:
-            music.skip()
 
     song = music.get_queue()[0]
     embed = extra.create_embed({
