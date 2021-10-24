@@ -267,6 +267,22 @@ async def report(ctx, *message):
     await ctx.message.add_reaction('👍')
     logging.info('Report handled')
 
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def puppet(ctx, channel, *message):
+    message = ' '.join(message)
+    guild = bot.get_guild(SETTINGS['guild'])
+
+    if channel.isdigit():
+        channel = guild.get_channel(int(channel))
+    else:
+        channel = channel.lstrip('#')
+        channel = [chnl for chnl in guild.text_channels if chnl.name == channel][0]
+
+    await channel.send(message)
+    await ctx.message.add_reaction('👍')
+    logging.info('Puppetting handled')
+
 @bot.command(aliases=['connect', 'c'])
 async def join(ctx):
     if ctx.message.author.voice:
