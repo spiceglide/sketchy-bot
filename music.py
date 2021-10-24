@@ -1,7 +1,7 @@
 from extra import has_url
 
 import os
-from random import shuffle
+import random
 
 from discord import FFmpegPCMAudio
 from yt_dlp import YoutubeDL
@@ -29,13 +29,17 @@ class Music:
         return info
         
     def dequeue(self):
-        if self.shuffle:
-            shuffle(self.queue)
+        if self.loop:
+            pass
+        elif self.loop_queue:
+            song = self.queue.pop(0)
+            self.queue.append(song)
+        elif self.shuffle:
+            index = random.randrange(len(self.queue) - 1)
+            song = self.queue.pop(index)
+            self.queue.insert(0, song)
         else:
             song = self.queue.pop(0)
-            
-            if self.loop_queue:
-                self.queue.append(song)
     
     def play(self):
         current_song = self.queue[0]
