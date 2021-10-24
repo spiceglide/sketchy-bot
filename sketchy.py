@@ -5,37 +5,16 @@ import handlers
 
 import json
 import os
-import re
 from copy import copy
 from sys import exit
 
 import sqlite3
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 
-load_dotenv()
-
-# Import settings
-TOKEN = os.getenv('SKETCHY_TOKEN')
-GUILD = int(os.getenv('SKETCHY_GUILD'))
-DATABASE_PATH = os.getenv('SKETCHY_DATABASE_PATH')
-AUTOROLES_PATH = os.getenv('SKETCHY_AUTOROLES_PATH')
-PREFIX = os.getenv('SKETCHY_PREFIX')
-SETUP_AUTOROLES = int(os.getenv('SKETCHY_SETUP_AUTOROLES'))
-GAMES_CHANNEL = int(os.getenv('SKETCHY_GAMES_CHANNEL'))
-PINGS_CHANNEL = int(os.getenv('SKETCHY_PINGS_CHANNEL'))
-REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
-ROLES_CHANNEL = int(os.getenv('SKETCHY_ROLES_CHANNEL'))
-SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
-VERIFIED_ROLE = int(os.getenv('SKETCHY_VERIFIED_ROLE'))
-ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
-SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
-CHANNEL_PING_ROLE = int(os.getenv('SKETCHY_CHANNEL_PING_ROLE'))
-CUSTOM_BOUNDARY_ROLE = int(os.getenv('SKETCHY_CUSTOM_BOUNDARY_ROLE'))
-
-extra.setup_db(DATABASE_PATH)
-AUTOROLES = extra.read_json(AUTOROLES_PATH)
+SETTINGS = extra.import_settings()
+extra.setup_db(SETTINGS['database_path'])
+AUTOROLES = extra.read_json(SETTINGS['autoroles_path'])
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -43,11 +22,11 @@ intents.members = True
 intents.presences = True
 intents.reactions = True
 
-bot = commands.Bot(command_prefix=PREFIX, intents=intents)
+bot = commands.Bot(command_prefix=SETTINGS['prefix'], intents=intents)
 
 @bot.event
 async def on_ready():
-    guild = bot.get_guild(GUILD)
+    guild = bot.get_guild(SETTINGS['guild'])
     print(
         'Connection established\n'
         f'User name:  {bot.user.name}\n'
@@ -62,10 +41,10 @@ async def on_ready():
     )
 
     members = bot.get_all_members()
-    extra.update_members_db(members, DATABASE_PATH)
+    extra.update_members_db(members, SETTINGS['database_path'])
 
     # Create auto-role messages
-    if SETUP_AUTOROLES == 1:
+    if SETTINGS['setup_autoroles'] == 1:
         for autorole in AUTOROLES:
             if autorole['message'] != 0:
                 continue
@@ -75,7 +54,7 @@ async def on_ready():
             for emoji, description in zip(autorole['reactions'], autorole['descriptions']):
                 embed.add_field(name=emoji, value=description)
 
-            channel = bot.get_channel(ROLES_CHANNEL)
+            channel = bot.get_channel(SETTINGS['roles_channel'])
             message = await channel.send(embed=embed)
 
             for emoji in autorole['reactions']:
@@ -94,24 +73,24 @@ async def on_member_join(member):
     embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
     await extra.send_dm_embed(embed, member)
 
-    extra.add_member_db(member, DATABASE_PATH)
+    extra.add_member_db(member, SETTINGS['database_path'])
 
 @bot.event
 async def on_message(message):
     # Direct messages
     if not message.guild:
-        await handlers.handle_dm(bot, message, REPORTS_CHANNEL)
+        await handlers.handle_dm(bot, message, SETTINGS['reports_channel'])
     # Game notifications
-    elif message.channel == bot.get_channel(GAMES_CHANNEL):
+    elif message.channel == bot.get_channel(SETTINGS['games_channel']):
         await handlers.handle_notifications(
             message,
-            sometimes_role=SOMETIMES_PING_ROLE,
-            always_role=ALWAYS_PING_ROLE,
-            channel_role=CHANNEL_PING_ROLE,
-            pings_channel=PINGS_CHANNEL,
+            sometimes_role=SETTINGS['sometimes_ping_role'],
+            always_role=SETTINGS['always_ping_role'],
+            channel_role=SETTINGS['channel_ping_role'],
+            pings_channel=SETTINGS['pings_channel'],
         )
     # Suggestions
-    elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):
+    elif message.channel == bot.get_channel(SETTINGS['suggestions_channel']):
         await handlers.handle_suggestions(message)
         return
     # Mentions
@@ -123,7 +102,7 @@ async def on_message(message):
 
 @bot.event
 async def on_guild_role_delete(role):
-    connection = sqlite3.connect(DATABASE_PATH)
+    connection = sqlite3.connect(SETTINGS['database_path'])
     cursor = connection.cursor()
 
     role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
@@ -136,9 +115,9 @@ async def on_guild_role_delete(role):
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    if payload.channel_id != ROLES_CHANNEL:
+    if payload.channel_id != SETTINGS['roles_channel']:
         return
-    if SETUP_AUTOROLES == 1:
+    if SETTINGS['setup_autoroles'] == 1:
         return
 
     for autorole in AUTOROLES:
@@ -148,16 +127,16 @@ async def on_raw_reaction_add(payload):
 
     for emoji, role in zip(data['reactions'], data['roles']):
         if payload.emoji.name == emoji:
-            guild = bot.get_guild(GUILD)
+            guild = bot.get_guild(SETTINGS['guild'])
             selected_role = guild.get_role(role)
             await payload.member.add_roles(selected_role)
             break
 
 @bot.event
 async def on_raw_reaction_remove(payload):
-    if payload.channel_id != ROLES_CHANNEL:
+    if payload.channel_id != SETTINGS['roles_channel']:
         return
-    if SETUP_AUTOROLES == 1:
+    if SETTINGS['setup_autoroles'] == 1:
         return
 
     for autorole in AUTOROLES:
@@ -166,7 +145,7 @@ async def on_raw_reaction_remove(payload):
 
     for emoji, role in zip(data['reactions'], data['roles']):
         if payload.emoji.name == emoji:
-            guild = bot.get_guild(GUILD)
+            guild = bot.get_guild(SETTINGS['guild'])
             selected_role = guild.get_role(role)
             member = guild.get_member(payload.user_id)
             await member.remove_roles(selected_role)
@@ -212,8 +191,8 @@ async def warn(ctx, member: discord.Member, *reason):
 @bot.command()
 @commands.has_permissions(manage_roles=True)
 async def approve(ctx, member: discord.Member):
-    verified_role = ctx.guild.get_role(VERIFIED_ROLE)
-    notify_role = ctx.guild.get_role(SOMETIMES_PING_ROLE)
+    verified_role = ctx.guild.get_role(SETTINGS['verified_role'])
+    notify_role = ctx.guild.get_role(SETTINGS['sometimes_ping_role'])
 
     await member.add_roles(verified_role, notify_role)
     await ctx.message.add_reaction('👍')
@@ -224,7 +203,7 @@ async def role(ctx, color, *name):
     red, green, blue = bytes.fromhex(color.lstrip('#'))
     color = discord.Color.from_rgb(red, green, blue)
 
-    connection = sqlite3.connect(DATABASE_PATH)
+    connection = sqlite3.connect(SETTINGS['database_path'])
     cursor = connection.cursor()
 
     role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
@@ -236,7 +215,7 @@ async def role(ctx, color, *name):
         new_role = role
 
         # Set role position above the generic roles
-        boundary_role = ctx.guild.get_role(CUSTOM_BOUNDARY_ROLE)
+        boundary_role = ctx.guild.get_role(SETTINGS['custom_boundary_role'])
         role_position = boundary_role.position + 1
         await role.edit(position=role_position)
 
@@ -266,4 +245,4 @@ async def role(ctx, color, *name):
     connection.commit()
     connection.close()
 
-bot.run(TOKEN)
+bot.run(SETTINGS['token'])
