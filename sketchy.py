@@ -6,6 +6,7 @@ from music import Music
 from sqlite_context_manager import db
 
 from admin import Admin
+from regular import Regular
 
 import json
 import logging
@@ -145,67 +146,6 @@ async def on_raw_reaction_remove(payload):
     member = guild.get_member(payload.user_id)
     await member.remove_roles(role)
     logging.info(f'Role {role} removed from member {member}')
-
-@bot.command()
-async def role(ctx, color, *name):
-    name = ' '.join(name)
-    color = common.hex_to_color(color)
-
-    with db(SETTINGS['paths']['database']) as cursor:
-        role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
-        # If no assigned role, create a new one
-        if role_assigned[0] == None:
-            role = await ctx.guild.create_role(name=name, color=color)
-            old_role = None
-            new_role = role
-
-            # Set role position above the generic roles
-            boundary_role = ctx.guild.get_role(SETTINGS['roles']['custom_boundary'])
-            role_position = boundary_role.position + 1
-            await role.edit(position=role_position)
-
-            # Add to user and database
-            await ctx.author.add_roles(role)
-            cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
-            cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
-        else:
-            role = ctx.guild.get_role(role_assigned[0])
-            old_role = copy(role)
-
-            if name == '':
-                await role.edit(color=color)
-            else:
-                await role.edit(name=name, color=color)
-            new_role = role
-
-    summary = common.compare_roles(old_role, new_role)
-    embed = common.create_embed({
-        'title': 'Role update',
-        'Name': summary['name'],
-        'Color': summary['color'],
-    }, inline=False, color=color)
-    await ctx.send(embed=embed)
-
-    logging.info(f'Role for member {ctx.author} updated')
-
-@bot.command()
-async def suggest(ctx, *message):
-    message = ' '.join(message)
-    channel = bot.get_channel(SETTINGS['channels']['suggestions'])
-
-    await channel.send(message)
-    await ctx.message.add_reaction('👍')
-    logging.info('Suggestion handled')
-
-@bot.command()
-async def report(ctx, *message):
-    message = ' '.join(message)
-    channel = bot.get_channel(SETTINGS['channels']['reports'])
-    embed = discord.Embed(title='Report', description=message)
-
-    await channel.send(embed=embed)
-    await ctx.message.add_reaction('👍')
-    logging.info('Report handled')
 
 @bot.command(aliases=['connect', 'c'])
 async def join(ctx):
@@ -437,4 +377,5 @@ async def clear(ctx):
     await ctx.send(embed=embed)
 
 bot.add_cog(Admin(bot, SETTINGS))
+bot.add_cog(Regular(bot, SETTINGS))
 bot.run(SETTINGS['token'])
