@@ -1,6 +1,7 @@
 from extra import has_url
 
 import os
+from random import shuffle
 
 from discord import FFmpegPCMAudio
 from yt_dlp import YoutubeDL
@@ -29,7 +30,7 @@ class Music:
         
     def dequeue(self):
         if self.shuffle:
-            self.queue = random.shuffle(self.queue)
+            self.queue = shuffle(self.queue)
         else:
             song = self.queue.pop(0)
             
