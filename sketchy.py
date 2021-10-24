@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import extra
+
 import os
 import re
 import sys
@@ -27,27 +29,8 @@ ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
 SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
 CUSTOM_BOUNDARY_ROLE = int(os.getenv('SKETCHY_CUSTOM_BOUNDARY_ROLE'))
 
-# Set up the database if it doesn't already exist
-if not os.path.exists(DATABASE_PATH):
-    connection = sqlite3.connect(DATABASE_PATH)
-    cursor = connection.cursor()
-
-    cursor.execute('PRAGMA foreign_keys=ON')
-    cursor.execute('''CREATE TABLE roles
-                      (id INTEGER PRIMARY KEY)''')
-    cursor.execute('''CREATE TABLE members
-                      (id INTEGER PRIMARY KEY,
-                       role INTEGER,
-                       FOREIGN KEY(role) REFERENCES roles(id) ON DELETE SET NULL)''')
-
-    connection.commit()
-    connection.close()
-    print('Set up database!')
-
-# Read auto-roles JSON into memory
-with open(AUTOROLES_PATH, 'r') as autoroles_file:
-    autoroles_json = autoroles_file.read()
-    AUTOROLES = json.loads(autoroles_json)['autoroles']
+extra.setup_db(DATABASE_PATH)
+AUTOROLES = extra.read_json(AUTOROLES_PATH)
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -73,18 +56,8 @@ async def on_ready():
         activity=discord.Activity(type=discord.ActivityType.watching, name='the stars'),
     )
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    cursor = connection.cursor()
-
-    # Make sure database is up-to-date
-    for member in bot.get_all_members():
-        member_exists = cursor.execute('SELECT EXISTS(SELECT id FROM members WHERE id = ?)', (member.id,)).fetchone()
-        if member_exists[0] == 0:
-            cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
-    
-    connection.commit()
-    connection.close()
-    print('Database updated!', end='\n')
+    members = bot.get_all_members()
+    extra.update_members_db(members, DATABASE_PATH)
 
     # Create auto-role messages
     if SETUP_AUTOROLES == 1:
@@ -120,13 +93,7 @@ async def on_member_join(member):
         dm = await member.create_dm()
         await dm.send(embed=embed)
 
-    connection = sqlite3.connect(DATABASE_PATH)
-    cursor = connection.cursor()
-
-    cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
-
-    connection.commit()
-    connection.close()
+    extra.add_member_db(member, DATABASE_PATH)
 
 @bot.event
 async def on_message(message):
@@ -139,9 +106,7 @@ async def on_message(message):
             await message.add_reaction('👍')
     # Game notifications
     elif message.channel == bot.get_channel(GAMES_CHANNEL):
-        # Check that the message contains a link
-        link_expression = re.compile(r'https?://[a-z0-9\.]+\.[a-z0-9]')
-        if link_expression.match(message.content.lower()) == None:
+        if extra.has_url(message.content):
             return
 
         for member in message.guild.members:
@@ -296,6 +261,9 @@ async def role(ctx, color, *name):
     if role_assigned[0] == None:
         role = await guild.create_role(name=name, color=color)
 
+        old_role = None
+        new_role = role
+
         # Set role position above the generic roles
         boundary_role = guild.get_role(CUSTOM_BOUNDARY_ROLE)
         role_position = boundary_role.position + 1
@@ -306,24 +274,25 @@ async def role(ctx, color, *name):
         cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
         cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
 
-        name_message = role.name
-        color_message = str(role.color)
+        #name_message = role.name
+        #color_message = str(role.color)
     else:
         role = guild.get_role(role_assigned[0])
-        name_message = role.name
-        color_message = str(role.color)
+
+        old_role = role
 
         if name == '':
             await role.edit(color=color)
-            color_message += f' → {str(role.color)}'
         else:
             await role.edit(name=name, color=color)
-            name_message += f' → {role.name}'
-            color_message += f' → {str(role.color)}'
+
+        new_role = role
+
+    summary = extra.compare_roles(old_role, new_role)
 
     embed = discord.Embed(title='Role update')
-    embed.add_field(name="Name", value=name_message, inline=False)
-    embed.add_field(name="Color", value=color_message, inline=False)
+    embed.add_field(name="Name", value=summary['name'], inline=False)
+    embed.add_field(name="Color", value=summary['color'], inline=False)
     await ctx.send(embed=embed)
 
     connection.commit()
