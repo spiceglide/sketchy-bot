@@ -25,12 +25,13 @@ if not os.path.exists(DATABASE_PATH):
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
+    cursor.execute('PRAGMA foreign_keys=ON')
     cursor.execute('''CREATE TABLE roles
                       (id INTEGER PRIMARY KEY)''')
     cursor.execute('''CREATE TABLE members
                       (id INTEGER PRIMARY KEY,
                        role INTEGER,
-                       FOREIGN KEY(role) REFERENCES roles(id))''')
+                       FOREIGN KEY(role) REFERENCES roles(id) ON DELETE SET NULL)''')
 
     connection.commit()
     connection.close()
@@ -39,6 +40,7 @@ if not os.path.exists(DATABASE_PATH):
 intents = discord.Intents.default()
 intents.members = True
 intents.presences = True
+intents.guilds = True
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
@@ -134,6 +136,19 @@ async def on_message(message):
     # Process any commands
     await bot.process_commands(message)
 
+@bot.event
+async def on_guild_role_delete(role):
+    connection = sqlite3.connect(DATABASE_PATH)
+    cursor = connection.cursor()
+
+    role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
+    if role_is_relevant[0] != 0:
+        cursor.execute('DELETE FROM roles WHERE id = ?', (role.id,))
+        cursor.execute('UPDATE members SET role = NULL WHERE role = ?', (role.id,))
+
+    connection.commit()
+    connection.close()
+
 @bot.command()
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *reason):
@@ -201,6 +216,7 @@ async def role(ctx, color, *name):
     if role_assigned[0] == None:
         role = await guild.create_role(name=name, color=color)
         await ctx.author.add_roles(role)
+        cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
         cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
 
         name_message = role.name
