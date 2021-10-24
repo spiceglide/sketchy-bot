@@ -136,17 +136,29 @@ async def on_message(message):
 
 @bot.command()
 @commands.has_permissions(ban_members=True)
-async def ban(ctx, member: discord.Member):
-    await member.ban()
+async def ban(ctx, member: discord.Member, *reason):
+    reason = ' '.join(reason)
+
+    await member.ban(reason=reason)
     embed = discord.Embed(title='Ban', description=f'{member.name} has been banned.')
+    embed.add_field(name='Reason', value=reason)
     await ctx.send(embed=embed)
+
+    dm = await member.create_dm()
+    await dm.send(embed=embed)
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
-async def kick(ctx, member: discord.Member):
-    await member.kick()
+async def kick(ctx, member: discord.Member, *reason):
+    reason = ' '.join(reason)
+
+    await member.kick(reason=reason)
     embed = discord.Embed(title='Kick', description=f'{member.name} has been kicked.')
+    embed.add_field(name='Reason', value=reason)
     await ctx.send(embed=embed)
+
+    dm = await member.create_dm()
+    await dm.send(embed=embed)
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -155,9 +167,13 @@ async def mute(ctx, member: discord.Member):
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
-async def warn(ctx, member: discord.Member):
+async def warn(ctx, member: discord.Member, *reason):
     embed = discord.Embed(title='Warning', description=f'{member.name} has been warned.')
+    embed.add_field(name='Reason', value=reason)
     await ctx.send(embed=embed)
+
+    dm = await member.create_dm()
+    await dm.send(embed=embed)
 
 @bot.command()
 @commands.has_permissions(manage_roles=True)
