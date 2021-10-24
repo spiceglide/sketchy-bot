@@ -74,6 +74,22 @@ def compare_roles(old_role, new_role):
 
     return {"name": name_message, "color": color_message}
 
+def create_embed(options, inline=True):
+    """Create an embed from a dictionary of options."""
+    embed = discord.Embed()
+
+    if 'title' in options:
+        embed.title = options.pop('title')
+    if 'description' in options:
+        embed.description = options.pop('description')
+
+    for name, value in options.items():
+        embed.add_field(name=name, value=value, inline=inline)
+
+    return embed
+
+
+
 async def send_dm_embed(embed, recipient):
     """Send an embed to a member."""
     dm = await recipient.create_dm()

@@ -155,8 +155,11 @@ async def on_raw_reaction_remove(payload):
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-    embed = discord.Embed(title='Ban', description=f'{member.name} has been banned.')
-    embed.add_field(name='Reason', value=reason)
+    embed = extra.create_embed({
+        'title': 'Ban',
+        'description': f'{member.name} has been banned.',
+        'Reason': reason,
+    })
 
     await extra.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
@@ -166,8 +169,11 @@ async def ban(ctx, member: discord.Member, *reason):
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-    embed = discord.Embed(title='Kick', description=f'{member.name} has been kicked.')
-    embed.add_field(name='Reason', value=reason)
+    embed = extra.create_embed({
+        'title': 'Kick',
+        'description': f'{member.name} has been kicked.',
+        'Reason': reason,
+    })
 
     await extra.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
@@ -182,8 +188,11 @@ async def mute(ctx, member: discord.Member):
 @commands.has_permissions(kick_members=True)
 async def warn(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-    embed = discord.Embed(title='Warning', description=f'{member.name} has been warned.')
-    embed.add_field(name='Reason', value=reason)
+    embed = extra.create_embed({
+        'title': 'Warning',
+        'description': f'{member.name} has been warned.',
+        'Reason': reason,
+    })
 
     await extra.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
@@ -237,9 +246,11 @@ async def role(ctx, color, *name):
 
     summary = extra.compare_roles(old_role, new_role)
 
-    embed = discord.Embed(title='Role update')
-    embed.add_field(name="Name", value=summary['name'], inline=False)
-    embed.add_field(name="Color", value=summary['color'], inline=False)
+    embed = extra.create_embed({
+        'title': 'Role update',
+        'Name': summary['name'],
+        'Color': summary['color'],
+    }, inline=False)
     await ctx.send(embed=embed)
 
     connection.commit()
