@@ -13,6 +13,7 @@ class Music:
         self.queue = []
         self.loop = False
         self.loop_queue = False
+        self.shuffle = False
         self.skipping = False
 
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
@@ -32,10 +33,13 @@ class Music:
         return info
         
     def dequeue(self):
-        song = self.queue.pop(0)
-        
-        if self.loop_queue:
-            self.queue.append(song)
+        if self.shuffle:
+            self.queue = random.shuffle(self.queue)
+        else:
+            song = self.queue.pop(0)
+            
+            if self.loop_queue:
+                self.queue.append(song)
     
     def play(self):
         current_song = self.queue[0]

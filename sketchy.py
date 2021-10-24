@@ -354,7 +354,7 @@ async def loop(ctx):
     })
     await ctx.send(embed=embed)
 
-@bot.command(aliases=['lq'])
+@bot.command(aliases=['loop_queue', 'loopq', 'lq'])
 async def loop_queue(ctx):
     async with ctx.channel.typing():
         music.loop_queue = not music.loop_queue
@@ -363,6 +363,16 @@ async def loop_queue(ctx):
     embed = extra.create_embed({
         'title': 'Queue',
         'description': f'{status} queue'
+    })
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def shuffle(ctx):
+    music.shuffle = not music.shuffle
+
+    embed = extra.create_embed({
+        'title': 'Queue',
+        'description': 'Shuffling queue',
     })
     await ctx.send(embed=embed)
 
