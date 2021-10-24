@@ -102,6 +102,7 @@ def import_settings():
         "roles_channel": int(os.getenv('SKETCHY_ROLES_CHANNEL')),
         "suggestions_channel": int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL')),
         "verified_role": int(os.getenv('SKETCHY_VERIFIED_ROLE')),
+        "bot_role": int(os.getenv('SKETCHY_BOT_ROLE')),
         "always_ping_role": int(os.getenv('SKETCHY_ALWAYS_PING_ROLE')),
         "sometimes_ping_role": int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE')),
         "channel_ping_role": int(os.getenv('SKETCHY_CHANNEL_PING_ROLE')),

@@ -200,7 +200,11 @@ async def approve(ctx, member: discord.Member):
     verified_role = ctx.guild.get_role(SETTINGS['verified_role'])
     notify_role = ctx.guild.get_role(SETTINGS['sometimes_ping_role'])
 
-    await member.add_roles(verified_role, notify_role)
+    if member.bot:
+        await member.add_roles(bot_role)
+    else
+        await member.add_roles(verified_role, notify_role)
+
     await ctx.message.add_reaction('👍')
     logging.info(f'Member {member} approved')
 
