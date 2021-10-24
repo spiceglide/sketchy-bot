@@ -290,7 +290,7 @@ async def play(ctx, *link):
         song = await music.enqueue(link)
         embed = extra.create_embed({
             'title': 'Added to queue',
-            'Title': song['title'],
+            'Title': f'[{song["title"]}]({song["webpage_url"]})',
         })
         await ctx.send(embed=embed)
 
@@ -332,7 +332,7 @@ async def queue(ctx):
     else:
         names = ["Now playing"] + list(range(1, len(queue)))
         for song, name in zip(queue, names):
-            embed.add_field(name=name, value=song['title'], inline=False)
+            embed.add_field(name=name, value=f'[{song["title"]}]({song["webpage_url"]})', inline=False)
 
     await ctx.send(embed=embed)
 
@@ -346,7 +346,7 @@ async def loop(ctx):
     if music.is_looping():
         embed = extra.create_embed({
             'title': 'Queue',
-            'description': f'{status} {song["title"]}'
+            'description': f'{status} [{song["title"]}]({song["webpage_url"]})'
         })
     await ctx.send(embed=embed)
 
@@ -359,7 +359,7 @@ async def skip(ctx):
     song = music.get_queue()[0]
     embed = extra.create_embed({
         'title': 'Queue',
-        'description': f'Skipped {song["title"]}'
+        'description': f'Skipped [{song["title"]}]({song["webpage_url"]})'
     })
     await ctx.send(embed=embed)
 
@@ -374,7 +374,7 @@ async def skipto(ctx, number):
     song = music.get_queue()[0]
     embed = extra.create_embed({
         'title': 'Queue',
-        'description': f'Skipped to {song["title"]}'
+        'description': f'Skipped to [{song["title"]}]({song["webpage_url"]})'
     })
     await ctx.send(embed=embed)
 
