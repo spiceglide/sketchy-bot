@@ -15,10 +15,8 @@ if not os.path.exists('data.db'):
 
     # TODO: Implement role-setting features using the database
     cursor.execute('''CREATE TABLE roles
-                      (id INTEGER PRIMARY KEY,
-                       name TEXT NOT NULL,
-                       color BLOB NOT NULL)''')
-    cursor.execute('''CREATE TABLE users
+                      (id INTEGER PRIMARY KEY)''')
+    cursor.execute('''CREATE TABLE members
                       (id INTEGER PRIMARY KEY,
                        role INTEGER,
                        FOREIGN KEY(role) REFERENCES roles(id))''')
@@ -58,6 +56,19 @@ async def on_ready():
         status=discord.Status.idle,
         activity=discord.Activity(type=discord.ActivityType.watching, name='the stars'),
     )
+
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+
+    # Make sure database is up-to-date
+    for member in bot.get_all_members():
+        member_exists = cursor.execute('SELECT EXISTS(SELECT id FROM members WHERE id = ?)', (member.id,)).fetchone()
+        if member_exists[0] == 0:
+            cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
+    
+    connection.commit()
+    connection.close()
+    print('Database updated!', end='\n')
 
 @bot.event
 async def on_member_join(member):
