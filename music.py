@@ -36,6 +36,8 @@ class Music:
     
     def clear(self):
         self.queue = []
+        for file in os.listdir(self.path):
+            os.remove(file)
 
     def toggle_loop(self):
         self.loop = not self.loop

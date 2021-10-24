@@ -265,6 +265,7 @@ async def leave(ctx):
     client = ctx.message.guild.voice_client
     if client.is_connected():
         await client.disconnect()
+        music.clear()
     else:
         await ctx.send("What do you want me to leave?")
 
