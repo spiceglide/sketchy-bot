@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import extra
+import handlers
 
 import json
 import os
@@ -100,21 +101,21 @@ async def on_member_join(member):
 async def on_message(message):
     # Direct messages
     if not message.guild:
-        await extra.handle_dm(bot, message, REPORTS_CHANNEL)
+        await handlers.handle_dm(bot, message, REPORTS_CHANNEL)
     # Game notifications
     elif message.channel == bot.get_channel(GAMES_CHANNEL):
-        await extra.handle_notifications(
+        await handlers.handle_notifications(
             message,
             sometimes_role=SOMETIMES_PING_ROLE,
             always_role=ALWAYS_PING_ROLE
         )
     # Suggestions
     elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):
-        await extra.handle_suggestions(message)
+        await handlers.handle_suggestions(message)
         return
     # Mentions
     elif bot.user.mentioned_in(message):
-        await extra.handle_mentions(message)
+        await handlers.handle_mentions(message)
 
     # Process any commands
     await bot.process_commands(message)
