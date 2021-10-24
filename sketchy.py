@@ -2,6 +2,8 @@
 
 import os
 import re
+import sys
+import json
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -13,9 +15,12 @@ load_dotenv()
 TOKEN = os.getenv('SKETCHY_TOKEN')
 GUILD = int(os.getenv('SKETCHY_GUILD'))
 DATABASE_PATH = os.getenv('SKETCHY_DATABASE_PATH')
+AUTOROLES_PATH = os.getenv('SKETCHY_AUTOROLES_PATH')
 PREFIX = os.getenv('SKETCHY_PREFIX')
+SETUP_AUTOROLES = int(os.getenv('SKETCHY_SETUP_AUTOROLES'))
 GAMES_CHANNEL = int(os.getenv('SKETCHY_GAMES_CHANNEL'))
 REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
+ROLES_CHANNEL = int(os.getenv('SKETCHY_ROLES_CHANNEL'))
 SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
 ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
@@ -39,10 +44,16 @@ if not os.path.exists(DATABASE_PATH):
     connection.close()
     print('Set up database!')
 
+# Read auto-roles JSON into memory
+with open(AUTOROLES_PATH, 'r') as autoroles_file:
+    autoroles_json = autoroles_file.read()
+    AUTOROLES = json.loads(autoroles_json)['autoroles']
+
 intents = discord.Intents.default()
+intents.guilds = True
 intents.members = True
 intents.presences = True
-intents.guilds = True
+intents.reactions = True
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
@@ -74,6 +85,27 @@ async def on_ready():
     connection.commit()
     connection.close()
     print('Database updated!', end='\n')
+
+    # Create auto-role messages
+    if SETUP_AUTOROLES == 1:
+        for autorole in AUTOROLES:
+            if autorole['message'] != 0:
+                continue
+
+            embed = discord.Embed(title=autorole['title'])
+
+            for emoji, description in zip(autorole['reactions'], autorole['descriptions']):
+                embed.add_field(name=emoji, value=description, inline=False)
+
+            channel = bot.get_channel(ROLES_CHANNEL)
+            message = await channel.send(embed=embed)
+
+            for emoji in autorole['reactions']:
+                await message.add_reaction(emoji)
+
+        print('Auto-roles set up!')
+        print('Please set the message IDs in the autoroles.json file and disable the SKETCHY_SETUP_AUTOROLES flag before restarting')
+        sys.exit()
 
 @bot.event
 async def on_member_join(member):
@@ -154,6 +186,46 @@ async def on_guild_role_delete(role):
 
     connection.commit()
     connection.close()
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    if SETUP_AUTOROLES == 1:
+        return
+
+    if payload.channel_id != ROLES_CHANNEL:
+        return
+
+    for autorole in AUTOROLES:
+        if payload.message_id == autorole['message']:
+            data = autorole
+            break
+
+    for emoji, role in zip(data['reactions'], data['roles']):
+        if payload.emoji.name == emoji:
+            guild = bot.get_guild(GUILD)
+            selected_role = guild.get_role(role)
+            await payload.member.add_roles(selected_role)
+            break
+
+@bot.event
+async def on_raw_reaction_remove(payload):
+    if SETUP_AUTOROLES == 1:
+        return
+
+    if payload.channel_id != ROLES_CHANNEL:
+        return
+
+    for autorole in AUTOROLES:
+        if payload.message_id == autorole['message']:
+            data = autorole
+
+    for emoji, role in zip(data['reactions'], data['roles']):
+        if payload.emoji.name == emoji:
+            guild = bot.get_guild(GUILD)
+            selected_role = guild.get_role(role)
+            member = guild.get_member(payload.user_id)
+            await member.remove_roles(selected_role)
+            break
 
 @bot.command()
 @commands.has_permissions(ban_members=True)

@@ -1,0 +1,32 @@
+{
+    "autoroles": [
+        {
+            "message": 111111111111111111,
+            "title": "Pronouns",
+            "reactions": [
+                "🙆‍♂️", "🙆‍♀️", "🙆"
+            ],
+            "roles": [
+                862432025382092910, 862432041937403914, 862432057467994172
+                111111111111111111, 222222222222222222, 333333333333333333
+            ],
+            "descriptions": [
+                "he/him", "she/her", "they/them"
+            ]
+        },
+        {
+            "message": 222222222222222222,
+            "title": "Notifications for games",
+            "reactions": [
+                "✔", "☑"
+            ],
+            "roles": [
+                444444444444444444, 555555555555555555
+
+            ],
+            "descriptions": [
+                "Ping me only when I'm online", "Ping me anytime"
+            ]
+        }
+    ]
+}
