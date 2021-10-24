@@ -1,12 +1,13 @@
 from sqlite_context_manager import db
 
-import os
-import logging
-import re
+import functools
 import json
-import sqlite3
+import logging
+import os
+import re
 
 import discord
+import sqlite3
 
 def setup_db(path):
     """Sets up a database if it doesn't already exist."""
@@ -26,6 +27,11 @@ def read_json(path):
     with open(path, 'r') as data_file:
         json_data = data_file.read()
         return json.loads(json_data)
+
+async def run_blocking(blocking_func, bot, *args, **kwargs):
+    """Runs a blocking function in a non-blocking way."""
+    func = functools.partial(blocking_func, *args, **kwargs)
+    return await bot.loop.run_in_executor(None, func)
 
 def update_members_db(members, db_path):
     """Update 'members' database table from a list of members."""

@@ -1,4 +1,4 @@
-from extra import has_url
+from common import has_url
 
 import os
 import random

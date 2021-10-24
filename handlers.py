@@ -1,11 +1,12 @@
-import extra
-import discord
-
+import functools
 import logging
+
+import common
+import discord
 
 async def handle_notifications(message, *, sometimes_role, always_role, channel_role, pings_channel):
     """Handler for notifications that the bot must deliver."""
-    if not extra.has_url(message.content):
+    if not common.has_url(message.content):
         return
 
     embed = discord.Embed(title='A game is being hosted!', description=message.content)
@@ -34,7 +35,7 @@ async def handle_notifications(message, *, sometimes_role, always_role, channel_
             if channel_role in member.roles:
                 await pings_channel.send(member.mention, embed=embed)
             else:
-                await extra.send_dm_embed(embed, member)
+                await common.send_dm_embed(embed, member)
         except Exception as e:
             logging.error(e)
 

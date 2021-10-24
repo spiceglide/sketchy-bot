@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-import extra
+import common
 import handlers
-import functools
 from music import Music
 from sqlite_context_manager import db
 
@@ -17,9 +16,9 @@ import discord
 from discord.ext import commands
 
 logging.basicConfig(filename='log.txt', level=logging.INFO)
-SETTINGS = extra.read_json('config.json')
-extra.setup_db(SETTINGS['paths']['database'])
-AUTOROLES = extra.read_json(SETTINGS['paths']['autoroles'])['autoroles']
+SETTINGS = common.read_json('config.json')
+common.setup_db(SETTINGS['paths']['database'])
+AUTOROLES = common.read_json(SETTINGS['paths']['autoroles'])['autoroles']
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -29,11 +28,6 @@ intents.reactions = True
 
 bot = commands.Bot(command_prefix=SETTINGS['prefix'], intents=intents)
 music = Music(SETTINGS['paths']['music'])
-
-async def run_blocking(blocking_func, *args, **kwargs):
-    """Runs a blocking function in a non-blocking way."""
-    func = functools.partial(blocking_func, *args, **kwargs)
-    return await bot.loop.run_in_executor(None, func)
 
 @bot.event
 async def on_ready():
@@ -52,7 +46,7 @@ async def on_ready():
     )
 
     members = bot.get_all_members()
-    extra.update_members_db(members, SETTINGS['paths']['database'])
+    common.update_members_db(members, SETTINGS['paths']['database'])
 
     # Create auto-role messages
     if SETTINGS['setup']['autoroles']:
@@ -82,9 +76,9 @@ async def on_member_join(member):
 
     # A welcoming message
     embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
-    await extra.send_dm_embed(embed, member)
+    await common.send_dm_embed(embed, member)
 
-    extra.add_member_db(member, SETTINGS['paths']['database'])
+    common.add_member_db(member, SETTINGS['paths']['database'])
     logging.info(f'Member {member} joined')
 
 @bot.event
@@ -129,8 +123,8 @@ async def on_raw_reaction_add(payload):
         return
 
     guild = bot.get_guild(SETTINGS['guild'])
-    data = extra.get_autorole_data(payload.message_id, AUTOROLES)
-    role = extra.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
+    data = common.get_autorole_data(payload.message_id, AUTOROLES)
+    role = common.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
     await payload.member.add_roles(role)
     logging.info(f'Role {role} added to member {payload.member}')
 
@@ -142,8 +136,8 @@ async def on_raw_reaction_remove(payload):
         return
 
     guild = bot.get_guild(SETTINGS['guild'])
-    data = extra.get_autorole_data(payload.message_id, AUTOROLES)
-    role = extra.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
+    data = common.get_autorole_data(payload.message_id, AUTOROLES)
+    role = common.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
 
     member = guild.get_member(payload.user_id)
     await member.remove_roles(role)
@@ -153,13 +147,13 @@ async def on_raw_reaction_remove(payload):
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Ban',
         'description': f'{member.name} has been banned.',
         'Reason': reason,
     })
 
-    await extra.send_dm_embed(embed, member)
+    await common.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
     await member.ban(reason=reason)
     logging.info(f'Member {member} banned')
@@ -168,13 +162,13 @@ async def ban(ctx, member: discord.Member, *reason):
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Kick',
         'description': f'{member.name} has been kicked.',
         'Reason': reason,
     })
 
-    await extra.send_dm_embed(embed, member)
+    await common.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
     await member.kick(reason=reason)
     logging.info(f'Member {member} kicked')
@@ -188,13 +182,13 @@ async def mute(ctx, member: discord.Member):
 @commands.has_permissions(kick_members=True)
 async def warn(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Warning',
         'description': f'{member.name} has been warned.',
         'Reason': reason,
     })
 
-    await extra.send_dm_embed(embed, member)
+    await common.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
     logging.info(f'Member {member} warned')
 
@@ -215,7 +209,7 @@ async def approve(ctx, member: discord.Member):
 @bot.command()
 async def role(ctx, color, *name):
     name = ' '.join(name)
-    color = extra.hex_to_color(color)
+    color = common.hex_to_color(color)
 
     with db(SETTINGS['paths']['database']) as cursor:
         role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
@@ -244,8 +238,8 @@ async def role(ctx, color, *name):
                 await role.edit(name=name, color=color)
             new_role = role
 
-    summary = extra.compare_roles(old_role, new_role)
-    embed = extra.create_embed({
+    summary = common.compare_roles(old_role, new_role)
+    embed = common.create_embed({
         'title': 'Role update',
         'Name': summary['name'],
         'Color': summary['color'],
@@ -278,7 +272,7 @@ async def join(ctx):
     if ctx.message.author.voice:
         channel = ctx.message.author.voice.channel
         await channel.connect()
-        await ctx.send(embed=extra.create_embed({'title': 'Connected'}))
+        await ctx.send(embed=common.create_embed({'title': 'Connected'}))
     else:
         await ctx.send('What do you want me to join?')
 
@@ -288,7 +282,7 @@ async def leave(ctx):
     if client.is_connected():
         await client.disconnect()
         music = Music(SETTINGS['paths']['music'])
-        await ctx.send(embed=extra.create_embed({'title': 'Disconnected'}))
+        await ctx.send(embed=common.create_embed({'title': 'Disconnected'}))
     else:
         await ctx.send('What do you want me to leave?')
 
@@ -314,9 +308,9 @@ async def play(ctx, *link):
                 client.play(audio, after=next)
 
     async with ctx.channel.typing():
-        song = await run_blocking(music.enqueue, link)
+        song = await common.run_blocking(music.enqueue, bot, link)
 
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Added to queue',
         'Title': f'[{song["title"]}]({song["webpage_url"]})',
     })
@@ -331,7 +325,7 @@ async def pause(ctx):
     client = ctx.message.guild.voice_client
     if client.is_playing():
         client.pause()
-        embed = extra.create_embed({
+        embed = common.create_embed({
             'title': 'Paused'
         })
         await ctx.send(embed=embed)
@@ -343,7 +337,7 @@ async def resume(ctx):
     client = ctx.message.guild.voice_client
     if not client.is_playing():
         client.resume()
-        embed = extra.create_embed({
+        embed = common.create_embed({
             'title': 'Resumed'
         })
         await ctx.send(embed=embed)
@@ -372,7 +366,7 @@ async def queue(ctx):
 @bot.command(aliases=['nowplaying', 'np'])
 async def now_playing(ctx):
     song = music.queue[0]
-    embed = extra.create_embed({'title': 'Now playing', 'description': f'[{song["title"]}]({song["webpage_url"]})'})
+    embed = common.create_embed({'title': 'Now playing', 'description': f'[{song["title"]}]({song["webpage_url"]})'})
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['l'])
@@ -384,7 +378,7 @@ async def loop(ctx):
 
     song = music.queue[0]
     status = 'Looping' if music.loop else 'Stopped looping'
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Queue',
         'description': f'{status} [{song["title"]}]({song["webpage_url"]})'
     })
@@ -398,7 +392,7 @@ async def loop_queue(ctx):
         music.shuffle = False
 
     status = 'Looping' if music.loop_queue else 'Stopped looping'
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Queue',
         'description': f'{status} queue'
     })
@@ -411,7 +405,7 @@ async def shuffle(ctx):
     music.loop_queue = False
 
     status = 'Shuffling' if music.shuffle else 'Stopped shuffling'
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Queue',
         'description': f'{status} queue',
     })
@@ -427,7 +421,7 @@ async def skip(ctx):
         music.dequeue()
         client.stop()
 
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Queue',
         'description': f'Skipped [{song["title"]}]({song["webpage_url"]})'
     })
@@ -444,7 +438,7 @@ async def jump(ctx, number):
         client.stop()
 
     song = music.queue[0]
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Queue',
         'description': f'Skipped to [{song["title"]}]({song["webpage_url"]})'
     })
@@ -453,7 +447,7 @@ async def jump(ctx, number):
 @bot.command(aliases=['rm', 'x'])
 async def remove(ctx, number):
     song = music.queue.pop(int(number))
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Queue',
         'description': f'Removed [{song["title"]}]({song["webpage_url"]})'
     })
@@ -466,7 +460,7 @@ async def clear(ctx):
         client.stop()
         music.clear()
 
-    embed = extra.create_embed({
+    embed = common.create_embed({
         'title': 'Queue',
         'description': 'Cleared'
     })
