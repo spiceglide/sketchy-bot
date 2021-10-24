@@ -4,8 +4,29 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+import sqlite3
 
 load_dotenv()
+
+# Set up the database if it doesn't already exist
+if not os.path.exists('data.db'):
+    connection = sqlite3.connect('data.db')
+    cursor = connection.cursor()
+
+    # TODO: Implement role-setting features using the database
+    cursor.execute('''CREATE TABLE roles
+                      (id INTEGER PRIMARY KEY,
+                       name TEXT NOT NULL,
+                       color BLOB NOT NULL)''')
+    cursor.execute('''CREATE TABLE users
+                      (id INTEGER PRIMARY KEY,
+                       role INTEGER,
+                       FOREIGN KEY(role) REFERENCES roles(id))''')
+
+    connection.commit()
+    connection.close()
+    print('Set up database!')
+
 TOKEN = os.getenv('SKETCHY_TOKEN')
 GUILD = int(os.getenv('SKETCHY_GUILD'))
 PREFIX = os.getenv('SKETCHY_PREFIX')
