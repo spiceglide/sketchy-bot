@@ -278,10 +278,15 @@ async def play(ctx, *link):
 
     def next(error):
         queue = music.get_queue()
-        music.dequeue()
-        if len(queue) > 0:
+
+        if music.is_looping():
             audio = music.play()
             client.play(audio, after=next)
+        else:
+            music.dequeue()
+            if len(queue) > 0:
+                audio = music.play()
+                client.play(audio, after=next)
 
     if not client.is_playing():
         audio = music.play()
@@ -317,6 +322,12 @@ async def queue(ctx):
         embed.add_field(name=name, value=song['title'], inline=False)
 
     await ctx.send(embed=embed)
+
+@bot.command()
+async def loop(ctx):
+    music.toggle_loop()
+    status = "ON" if music.is_looping() else "OFF"
+    await ctx.send(f"Loop is {status}")
 
 @bot.command()
 async def skip(ctx):
