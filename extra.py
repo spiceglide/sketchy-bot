@@ -49,15 +49,19 @@ def has_url(text):
 
 def compare_roles(old_role, new_role):
     """Compare name and color of two roles and return a dictionary of strings showing the changes."""
-    if old_role.name == new_role.name:
-        name_message = new_role.name
-    else:
-        name_message = f'{old_role.name} → {new_role.name}'
+    if old_role:
+        if old_role.name == new_role.name:
+            name_message = new_role.name
+        else:
+            name_message = f'{old_role.name} → {new_role.name}'
 
-    if old_role.color == new_role.color:
-        color_message = new_role.color
+        if old_role.color == new_role.color:
+            color_message = new_role.color
+        else:
+            color_message = f'{str(old_role.color)} → {str(new_role.color)}'
     else:
-        color_message = f'{str(old_role.color)} → {str(new_role.color)}'
+        name_message = new_role.name
+        color_message = new_role.color
 
     return {"name": name_message, "color": color_message}
 
