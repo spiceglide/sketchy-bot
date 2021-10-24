@@ -9,13 +9,23 @@ async def handle_dm(bot, message, reports_channel_id):
         await channel.send(embed=embed)
         await message.add_reaction('👍')
 
-async def handle_notifications(message, *, sometimes_role, always_role):
+async def handle_notifications(message, *, sometimes_role, always_role, channel_role, pings_channel):
     """Handler for notifications that the bot must deliver."""
     if not extra.has_url(message.content):
         return
 
+    embed = discord.Embed(title='A game is being hosted!', description=message.content)
+    embed.add_field(name="Host", value=message.author.name)
+
+    channel = message.channel
+    guild = channel.guild
+    channel_role = guild.get_role(channel_role)
+
     for member in message.guild.members:
         try:
+            if member.bot:
+                continue
+
             roles = member.roles
             # Don't notify offline users
             if message.guild.get_role(sometimes_role) in roles:
@@ -24,13 +34,14 @@ async def handle_notifications(message, *, sometimes_role, always_role):
             elif message.guild.get_role(always_role) in roles:
                 pass
 
-            # Format message
-            embed = discord.Embed(title='A game is being hosted!', description=message.content)
-            embed.add_field(name="Host", value=message.author.name)
-
-            await extra.send_dm_embed(embed, member)
-        except:
-            pass
+            # Send message via user's preferred method
+            if channel_role in member.roles:
+                pings_channel = guild.get_channel(pings_channel)
+                await pings_channel.send(member.mention, embed=embed)
+            else:
+                await extra.send_dm_embed(embed, member)
+        except Exception as e:
+            print(e)
 
 async def handle_suggestions(message):
     """Handler for messages sent in the suggestions channel."""

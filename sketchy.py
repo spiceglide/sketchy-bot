@@ -24,12 +24,14 @@ AUTOROLES_PATH = os.getenv('SKETCHY_AUTOROLES_PATH')
 PREFIX = os.getenv('SKETCHY_PREFIX')
 SETUP_AUTOROLES = int(os.getenv('SKETCHY_SETUP_AUTOROLES'))
 GAMES_CHANNEL = int(os.getenv('SKETCHY_GAMES_CHANNEL'))
+PINGS_CHANNEL = int(os.getenv('SKETCHY_PINGS_CHANNEL'))
 REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
 ROLES_CHANNEL = int(os.getenv('SKETCHY_ROLES_CHANNEL'))
 SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
 ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
 SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
+CHANNEL_PING_ROLE = int(os.getenv('SKETCHY_CHANNEL_PING_ROLE'))
 CUSTOM_BOUNDARY_ROLE = int(os.getenv('SKETCHY_CUSTOM_BOUNDARY_ROLE'))
 
 extra.setup_db(DATABASE_PATH)
@@ -107,7 +109,9 @@ async def on_message(message):
         await handlers.handle_notifications(
             message,
             sometimes_role=SOMETIMES_PING_ROLE,
-            always_role=ALWAYS_PING_ROLE
+            always_role=ALWAYS_PING_ROLE,
+            channel_role=CHANNEL_PING_ROLE,
+            pings_channel=PINGS_CHANNEL,
         )
     # Suggestions
     elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):

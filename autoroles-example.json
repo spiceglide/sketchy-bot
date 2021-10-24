@@ -7,7 +7,6 @@
                 "🙆‍♂️", "🙆‍♀️", "🙆"
             ],
             "roles": [
-                862432025382092910, 862432041937403914, 862432057467994172
                 111111111111111111, 222222222222222222, 333333333333333333
             ],
             "descriptions": [
@@ -26,6 +25,19 @@
             ],
             "descriptions": [
                 "Ping me only when I'm online", "Ping me anytime"
+            ]
+        },
+        {
+            "message": 333333333333333333,
+            "title": "Notification delivery",
+            "reactions": [
+                "🔔"
+            ],
+            "roles": [
+                666666666666666666
+            ],
+            "descriptions": [
+                "Ping me in a channel instead of DMs"
             ]
         }
     ]
