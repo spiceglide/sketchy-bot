@@ -1,4 +1,6 @@
 import os
+from extra import has_url
+
 from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
 
@@ -13,10 +15,13 @@ class Music:
 
     def enqueue(self, link):
         with YoutubeDL(self.youtube_dl_options) as ydl:
-            info = ydl.extract_info(link)
-            self.queue.append(info)
+            if has_url(link):
+                info = ydl.extract_info(link)
+            else:
+                info = ydl.extract_info(f'ytsearch1:{link}')['entries'][0]
 
-            ydl.download([link])
+            self.queue.append(info)
+            ydl.download([info['webpage_url']])
         
     def dequeue(self):
         self.queue.pop(0)
