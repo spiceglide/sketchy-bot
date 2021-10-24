@@ -73,15 +73,24 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
-    # Unverify newbies
-    guild = bot.get_guild(GUILD)
-    role = guild.get_role(UNVERIFIED_ROLE)
-    await member.add_roles(role)
+    if not member.bot:
+        # Unverify newbies
+        guild = bot.get_guild(GUILD)
+        role = guild.get_role(UNVERIFIED_ROLE)
+        await member.add_roles(role)
 
-    # A welcoming message
-    embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
-    dm = await member.create_dm()
-    await dm.send(embed=embed)
+        # A welcoming message
+        embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
+        dm = await member.create_dm()
+        await dm.send(embed=embed)
+
+    connection = sqlite3.connect(DATABASE_PATH)
+    cursor = connection.cursor()
+
+    cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
+
+    connection.commit()
+    connection.close()
 
 @bot.event
 async def on_message(message):
