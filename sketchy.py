@@ -236,13 +236,14 @@ async def role(ctx, color, *name):
                 await role.edit(name=name, color=color)
             new_role = role
 
-        summary = extra.compare_roles(old_role, new_role)
-        embed = extra.create_embed({
-            'title': 'Role update',
-            'Name': summary['name'],
-            'Color': summary['color'],
-        }, inline=False, color=color)
-        await ctx.send(embed=embed)
+    summary = extra.compare_roles(old_role, new_role)
+    embed = extra.create_embed({
+        'title': 'Role update',
+        'Name': summary['name'],
+        'Color': summary['color'],
+    }, inline=False, color=color)
+    await ctx.send(embed=embed)
+
     logging.info(f'Role for member {ctx.author} updated')
 
 bot.run(SETTINGS['token'])
