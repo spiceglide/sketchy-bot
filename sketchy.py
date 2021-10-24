@@ -9,6 +9,7 @@ load_dotenv()
 TOKEN = os.getenv('SKETCHY_TOKEN')
 GUILD = int(os.getenv('SKETCHY_GUILD'))
 PREFIX = os.getenv('SKETCHY_PREFIX')
+UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
 
 intents = discord.Intents.default()
 intents.members = True
