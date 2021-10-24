@@ -31,4 +31,15 @@ async def on_ready():
         activity=discord.Activity(type=discord.ActivityType.watching, name='the stars'),
     )
 
+@bot.event
+async def on_member_join(member):
+    # Unverify newbies
+    guild = bot.get_guild(GUILD)
+    role = guild.get_role(UNVERIFIED_ROLE)
+    await member.add_roles(role)
+
+    # A welcoming message
+    dm = await member.create_dm()
+    await dm.send('Welcome to Sketchspace!')
+
 bot.run(TOKEN)
