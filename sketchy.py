@@ -20,7 +20,6 @@ logging.basicConfig(filename="log.txt", level=logging.INFO)
 SETTINGS = extra.read_json('config.json')
 extra.setup_db(SETTINGS['paths']['database'])
 AUTOROLES = extra.read_json(SETTINGS['paths']['autoroles'])['autoroles']
-print(AUTOROLES)
 
 intents = discord.Intents.default()
 intents.guilds = True
