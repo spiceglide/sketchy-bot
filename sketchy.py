@@ -2,6 +2,7 @@
 
 import extra
 import handlers
+from sqlite_context_manager import db
 
 import json
 import os
@@ -105,13 +106,11 @@ async def on_guild_role_delete(role):
     connection = sqlite3.connect(SETTINGS['database_path'])
     cursor = connection.cursor()
 
-    role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
-    if role_is_relevant[0] != 0:
-        cursor.execute('DELETE FROM roles WHERE id = ?', (role.id,))
-        cursor.execute('UPDATE members SET role = NULL WHERE role = ?', (role.id,))
-
-    connection.commit()
-    connection.close()
+    with db(SETTINGS['database_path']) as cursor:
+        role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
+        if role_is_relevant[0] != 0:
+            cursor.execute('DELETE FROM roles WHERE id = ?', (role.id,))
+            cursor.execute('UPDATE members SET role = NULL WHERE role = ?', (role.id,))
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -204,45 +203,43 @@ async def role(ctx, color, *name):
     connection = sqlite3.connect(SETTINGS['database_path'])
     cursor = connection.cursor()
 
-    role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
-    # If no assigned role, create a new one
-    if role_assigned[0] == None:
-        role = await ctx.guild.create_role(name=name, color=color)
+    with db(SETTINGS['database_path']) as cursor:
+        role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
+        # If no assigned role, create a new one
+        if role_assigned[0] == None:
+            role = await ctx.guild.create_role(name=name, color=color)
 
-        old_role = None
-        new_role = role
+            old_role = None
+            new_role = role
 
-        # Set role position above the generic roles
-        boundary_role = ctx.guild.get_role(SETTINGS['custom_boundary_role'])
-        role_position = boundary_role.position + 1
-        await role.edit(position=role_position)
+            # Set role position above the generic roles
+            boundary_role = ctx.guild.get_role(SETTINGS['custom_boundary_role'])
+            role_position = boundary_role.position + 1
+            await role.edit(position=role_position)
 
-        # Add to user and database
-        await ctx.author.add_roles(role)
-        cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
-        cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
-    else:
-        role = ctx.guild.get_role(role_assigned[0])
-
-        old_role = copy(role)
-
-        if name == '':
-            await role.edit(color=color)
+            # Add to user and database
+            await ctx.author.add_roles(role)
+            cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
+            cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
         else:
-            await role.edit(name=name, color=color)
+            role = ctx.guild.get_role(role_assigned[0])
 
-        new_role = role
+            old_role = copy(role)
 
-    summary = extra.compare_roles(old_role, new_role)
+            if name == '':
+                await role.edit(color=color)
+            else:
+                await role.edit(name=name, color=color)
 
-    embed = extra.create_embed({
-        'title': 'Role update',
-        'Name': summary['name'],
-        'Color': summary['color'],
-    }, inline=False)
-    await ctx.send(embed=embed)
+            new_role = role
 
-    connection.commit()
-    connection.close()
+        summary = extra.compare_roles(old_role, new_role)
+
+        embed = extra.create_embed({
+            'title': 'Role update',
+            'Name': summary['name'],
+            'Color': summary['color'],
+        }, inline=False)
+        await ctx.send(embed=embed)
 
 bot.run(SETTINGS['token'])
