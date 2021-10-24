@@ -29,6 +29,9 @@ class Music:
     def skip(self):
         self.dequeue()
         self.play()
+    
+    def clear(self):
+        self.queue = []
 
     def toggle_loop(self):
         self.loop = not self.loop

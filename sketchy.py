@@ -341,4 +341,10 @@ async def skipto(ctx, number):
     for skip in number:
         music.skip()
 
+@bot.command()
+async def clear(ctx):
+    client = ctx.message.guild.voice_client
+    client.stop()
+    music.clear()
+
 bot.run(SETTINGS['token'])
