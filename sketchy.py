@@ -120,17 +120,12 @@ async def on_raw_reaction_add(payload):
     if SETTINGS['setup_autoroles'] == 1:
         return
 
-    for autorole in AUTOROLES:
-        if payload.message_id == autorole['message']:
-            data = autorole
-            break
+    guild = bot.get_guild(SETTINGS['guild'])
+    data = extra.get_autorole_data(payload.message_id, AUTOROLES)
+    role = extra.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
 
-    for emoji, role in zip(data['reactions'], data['roles']):
-        if payload.emoji.name == emoji:
-            guild = bot.get_guild(SETTINGS['guild'])
-            selected_role = guild.get_role(role)
-            await payload.member.add_roles(selected_role)
-            break
+    await payload.member.add_roles(role)
+
 
 @bot.event
 async def on_raw_reaction_remove(payload):
@@ -139,17 +134,12 @@ async def on_raw_reaction_remove(payload):
     if SETTINGS['setup_autoroles'] == 1:
         return
 
-    for autorole in AUTOROLES:
-        if payload.message_id == autorole['message']:
-            data = autorole
+    guild = bot.get_guild(SETTINGS['guild'])
+    data = extra.get_autorole_data(payload.message_id, AUTOROLES)
+    role = extra.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
 
-    for emoji, role in zip(data['reactions'], data['roles']):
-        if payload.emoji.name == emoji:
-            guild = bot.get_guild(SETTINGS['guild'])
-            selected_role = guild.get_role(role)
-            member = guild.get_member(payload.user_id)
-            await member.remove_roles(selected_role)
-            break
+    member = guild.get_member(payload.user_id)
+    await member.remove_roles(role)
 
 @bot.command()
 @commands.has_permissions(ban_members=True)
@@ -209,8 +199,7 @@ async def approve(ctx, member: discord.Member):
 @bot.command()
 async def role(ctx, color, *name):
     name = ' '.join(name)
-    red, green, blue = bytes.fromhex(color.lstrip('#'))
-    color = discord.Color.from_rgb(red, green, blue)
+    color = extra.hex_to_color(color)
 
     connection = sqlite3.connect(SETTINGS['database_path'])
     cursor = connection.cursor()

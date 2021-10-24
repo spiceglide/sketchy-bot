@@ -115,3 +115,20 @@ def import_settings():
         "channel_ping_role": int(os.getenv('SKETCHY_CHANNEL_PING_ROLE')),
         "custom_boundary_role": int(os.getenv('SKETCHY_CUSTOM_BOUNDARY_ROLE')),
     }
+
+def hex_to_color(hex):
+    """Generate a Discord color object from a hex triplet string."""
+    red, green, blue = bytes.fromhex(hex.lstrip('#'))
+    return discord.Color.from_rgb(red, green, blue)
+
+def get_autorole_data(message_id, autoroles):
+    """Get data about an auto-role from its message ID."""
+    for autorole in autoroles:
+        if message_id == autorole['message']:
+            return autorole
+
+def get_autorole_role_from_reaction(emoji, autorole_data, guild):
+    """Get the role represented by an auto-role reaction."""
+    for reaction, role in zip(autorole_data['reactions'], autorole_data['roles']):
+        if emoji == reaction:
+            return guild.get_role(role)
