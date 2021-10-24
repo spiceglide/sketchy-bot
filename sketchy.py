@@ -67,8 +67,9 @@ async def on_member_join(member):
     await member.add_roles(role)
 
     # A welcoming message
+    embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
     dm = await member.create_dm()
-    await dm.send('Welcome to Sketchspace!')
+    await dm.send(embed=embed)
 
 @bot.event
 async def on_message(message):
