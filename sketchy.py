@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -105,6 +106,11 @@ async def on_message(message):
             await message.add_reaction('👍')
     # Game notifications
     elif message.channel == bot.get_channel(GAMES_CHANNEL):
+        # Check that the message contains a link
+        link_expression = re.compile(r'https?://[a-z0-9\.]+\.[a-z0-9]')
+        if link_expression.match(message.content.lower()) == None:
+            return
+
         for member in message.guild.members:
             try:
                 roles = member.roles
