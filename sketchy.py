@@ -283,7 +283,7 @@ async def play(ctx, *link):
     queue = music.get_queue()
 
     def next(error):
-        if music.is_looping():
+        if music.loop:
             audio = music.play()
             client.play(audio, after=next)
         else:
@@ -349,10 +349,10 @@ async def queue(ctx):
 @bot.command(aliases=['l'])
 async def loop(ctx):
     async with ctx.channel.typing():
-        music.toggle_loop()
+        music.loop = not music.loop
 
     song = music.get_queue()[0]
-    status = 'Looping' if music.is_looping() else 'Stopped looping'
+    status = 'Looping' if music.loop else 'Stopped looping'
     embed = extra.create_embed({
         'title': 'Queue',
         'description': f'{status} [{song["title"]}]({song["webpage_url"]})'
@@ -362,9 +362,9 @@ async def loop(ctx):
 @bot.command(aliases=['lq'])
 async def loop_queue(ctx):
     async with ctx.channel.typing():
-        music.toggle_loop_queue()
+        music.loop_queue = not music.loop_queue
 
-    status = 'Looping' if music.is_looping_queue() else 'Stopped looping'
+    status = 'Looping' if music.loop_queue else 'Stopped looping'
     embed = extra.create_embed({
         'title': 'Queue',
         'description': f'{status} queue'

@@ -40,18 +40,6 @@ class Music:
         self.queue = []
         for file in os.listdir(self.path):
             os.remove(f'{self.path}/{file}')
-
-    def toggle_loop(self):
-        self.loop = not self.loop
-
-    def toggle_loop_queue(self):
-        self.loop_queue = not self.loop_queue
-
-    def is_looping(self):
-        return self.loop
-
-    def is_looping_queue(self):
-        return self.loop_queue
     
     def get_queue(self):
         return self.queue
