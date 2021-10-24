@@ -3,14 +3,6 @@ import discord
 
 import logging
 
-async def handle_dm(bot, message, reports_channel_id):
-    """Handler for direct messages received by the bot."""
-    if message.author != bot.user:
-        channel = bot.get_channel(reports_channel_id)
-        embed = discord.Embed(title='Report', description=message.content)
-        await channel.send(embed=embed)
-        await message.add_reaction('👍')
-
 async def handle_notifications(message, *, sometimes_role, always_role, channel_role, pings_channel):
     """Handler for notifications that the bot must deliver."""
     if not extra.has_url(message.content):

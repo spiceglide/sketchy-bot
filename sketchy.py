@@ -89,12 +89,8 @@ async def on_member_join(member):
 
 @bot.event
 async def on_message(message):
-    # Direct messages
-    if not message.guild:
-        await handlers.handle_dm(bot, message, SETTINGS['channels']['reports'])
-        logging.info('DM handled')
     # Game notifications
-    elif message.channel == bot.get_channel(SETTINGS['channels']['games']):
+    if message.channel == bot.get_channel(SETTINGS['channels']['games']):
         await handlers.handle_notifications(
             message,
             sometimes_role=SETTINGS['roles']['sometimes_ping'],
@@ -260,10 +256,22 @@ async def role(ctx, color, *name):
 
 @bot.command()
 async def suggest(ctx, *message):
-    #if not ctx.message.guild:
     message = ' '.join(message)
     channel = bot.get_channel(SETTINGS['channels']['suggestions'])
+
     await channel.send(message)
+    await ctx.message.add_reaction('👍')
+    logging.info('Suggestion handled')
+
+@bot.command()
+async def report(ctx, *message):
+    message = ' '.join(message)
+    channel = bot.get_channel(SETTINGS['channels']['reports'])
+    embed = discord.Embed(title='Report', description=message)
+
+    await channel.send(embed=embed)
+    await ctx.message.add_reaction('👍')
+    logging.info('Report handled')
 
 @bot.command(aliases=['connect', 'c'])
 async def join(ctx):
