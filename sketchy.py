@@ -2,14 +2,16 @@
 
 import extra
 
+import json
 import os
 import re
-import sys
-import json
+from copy import copy
+from sys import exit
+
+import sqlite3
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-import sqlite3
 
 load_dotenv()
 
@@ -78,7 +80,7 @@ async def on_ready():
 
         print('Auto-roles set up!')
         print('Please set the message IDs in the autoroles.json file and disable the SKETCHY_SETUP_AUTOROLES flag before restarting')
-        sys.exit()
+        exit()
 
 @bot.event
 async def on_member_join(member):
@@ -273,13 +275,10 @@ async def role(ctx, color, *name):
         await ctx.author.add_roles(role)
         cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
         cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
-
-        #name_message = role.name
-        #color_message = str(role.color)
     else:
         role = guild.get_role(role_assigned[0])
 
-        old_role = role
+        old_role = copy(role)
 
         if name == '':
             await role.edit(color=color)
