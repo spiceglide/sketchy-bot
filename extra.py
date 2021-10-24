@@ -57,7 +57,7 @@ def add_member_db(member, db_path):
 def has_url(text):
     """Checks whether a piece of text contains a URL."""
     link_expression = re.compile(r'https?://[a-z0-9\.]+\.[a-z0-9]')
-    contains_link = link_expression.match(text.lower()) != None
+    contains_link = link_expression.search(text.lower()) != None
     return contains_link
 
 def compare_roles(old_role, new_role):

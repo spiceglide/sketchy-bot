@@ -11,7 +11,7 @@ async def handle_dm(bot, message, reports_channel_id):
 
 async def handle_notifications(message, *, sometimes_role, always_role):
     """Handler for notifications that the bot must deliver."""
-    if extra.has_url(message.content):
+    if not extra.has_url(message.content):
         return
 
     for member in message.guild.members:
