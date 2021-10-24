@@ -106,25 +106,24 @@ async def on_message(message):
     # Game notifications
     elif message.channel == bot.get_channel(GAMES_CHANNEL):
         for member in message.guild.members:
-            # Don't notify bots
-            if member.bot:
-                continue
+            try:
+                roles = member.roles
+                # Don't notify offline users
+                if message.guild.get_role(SOMETIMES_PING_ROLE) in roles:
+                    if member.status == discord.Status.offline:
+                        continue
+                elif message.guild.get_role(ALWAYS_PING_ROLE) in roles:
+                    pass
 
-            roles = member.roles
-            # Don't notify offline users
-            if message.guild.get_role(SOMETIMES_PING_ROLE) in roles:
-                if member.status == discord.Status.offline:
-                    continue
-            elif message.guild.get_role(ALWAYS_PING_ROLE) in roles:
+                # Format message
+                embed = discord.Embed(title='A game is being hosted!', description=message.content)
+                embed.add_field(name="Host", value=message.author.name)
+
+                # Send
+                dm = await member.create_dm()
+                await dm.send(embed=embed)
+            except:
                 pass
-
-            # Format message
-            embed = discord.Embed(title='A game is being hosted!', description=message.content)
-            embed.add_field(name="Host", value=message.author.name)
-
-            # Send
-            dm = await member.create_dm()
-            await dm.send(embed=embed)
     # Suggestions
     elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):
         await message.add_reaction('👍')
