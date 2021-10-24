@@ -28,7 +28,7 @@ PINGS_CHANNEL = int(os.getenv('SKETCHY_PINGS_CHANNEL'))
 REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
 ROLES_CHANNEL = int(os.getenv('SKETCHY_ROLES_CHANNEL'))
 SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
-UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
+VERIFIED_ROLE = int(os.getenv('SKETCHY_VERIFIED_ROLE'))
 ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
 SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
 CHANNEL_PING_ROLE = int(os.getenv('SKETCHY_CHANNEL_PING_ROLE'))
@@ -88,11 +88,6 @@ async def on_ready():
 @bot.event
 async def on_member_join(member):
     if not member.bot:
-        # Unverify newbies
-        guild = bot.get_guild(GUILD)
-        role = guild.get_role(UNVERIFIED_ROLE)
-        await member.add_roles(role)
-
         # A welcoming message
         embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
         await extra.send_dm_embed(embed, member)
@@ -221,10 +216,10 @@ async def warn(ctx, member: discord.Member, *reason):
 @commands.has_permissions(manage_roles=True)
 async def approve(ctx, member: discord.Member):
     guild = bot.get_guild(GUILD)
-    unverified_role = guild.get_role(UNVERIFIED_ROLE)
+    verified_role = guild.get_role(VERIFIED_ROLE)
     notify_role = guild.get_role(SOMETIMES_PING_ROLE)
 
-    await member.remove_roles(unverified_role)
+    await member.add_roles(verified_role)
     await member.add_roles(notify_role)
     await ctx.message.add_reaction('👍')
 
