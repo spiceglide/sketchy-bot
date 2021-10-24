@@ -271,14 +271,22 @@ async def leave(ctx):
 @bot.command()
 async def play(ctx, *link):
     link = ' '.join(link)
-
     client = ctx.message.guild.voice_client
+
+    music.enqueue(link)
+    await ctx.send("Added to queue")
+
+    def next(error):
+        queue = music.get_queue()
+        music.dequeue()
+        if len(queue) > 0:
+            audio = music.play()
+            client.play(audio, after=next)
+
     if not client.is_playing():
-        audio = music.get_music(link)
-        client.play(audio, after=None)
+        audio = music.play()
+        client.play(audio, after=next)
         await ctx.send("Okay, playing")
-    else:
-        await ctx.send("I'm already playing something")
 
 @bot.command()
 async def stop(ctx):
@@ -307,5 +315,17 @@ async def resume(ctx):
         await ctx.send("Okay, resumed")
     else:
         await ctx.send("There's nothing to resume")
+
+@bot.command()
+async def queue(ctx):
+    queue = music.get_queue()
+
+    embed = discord.Embed(title='Queue')
+
+    names = ["Now playing"] + list(range(1, len(queue)))
+    for song, name in zip(queue, names):
+        embed.add_field(name=name, value=song['title'], inline=False)
+
+    await ctx.send(embed=embed)
 
 bot.run(SETTINGS['token'])
