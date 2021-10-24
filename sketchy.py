@@ -369,8 +369,8 @@ async def skip(ctx):
     })
     await ctx.send(embed=embed)
 
-@bot.command(aliases=['s2'])
-async def skipto(ctx, number):
+@bot.command(aliases=['j'])
+async def jump(ctx, number):
     async with ctx.channel.typing():
         client = ctx.message.guild.voice_client
         client.stop()
