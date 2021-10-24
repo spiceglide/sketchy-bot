@@ -30,12 +30,16 @@ if not os.path.exists('data.db'):
 TOKEN = os.getenv('SKETCHY_TOKEN')
 GUILD = int(os.getenv('SKETCHY_GUILD'))
 PREFIX = os.getenv('SKETCHY_PREFIX')
+GAMES_CHANNEL = int(os.getenv('SKETCHY_GAMES_CHANNEL'))
 REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
 SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
+ALWAYS_PING = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
+SOMETIMES_PING = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
 
 intents = discord.Intents.default()
 intents.members = True
+intents.presences = True
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
@@ -74,6 +78,24 @@ async def on_message(message):
             channel = bot.get_channel(REPORTS_CHANNEL)
             await channel.send(f'>>> {message.content}')
             await message.add_reaction('👍')
+    # Game notifications
+    elif message.channel == bot.get_channel(GAMES_CHANNEL):
+        for member in message.guild.members:
+            # Don't notify bots
+            if member.bot:
+                continue
+
+            roles = member.roles
+            # Don't ping if user is offline
+            if message.guild.get_role(SOMETIMES_PING) in roles:
+                if member.status == discord.Status.offline:
+                    continue
+            elif message.guild.get_role(ALWAYS_PING) in roles:
+                pass
+
+            # Send a DM
+            dm = await member.create_dm()
+            await dm.send(f'{message.author.name} is hosting a game!')
     # Suggestions
     elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):
         await message.add_reaction('👍')
