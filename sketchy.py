@@ -258,6 +258,13 @@ async def role(ctx, color, *name):
 
     logging.info(f'Role for member {ctx.author} updated')
 
+@bot.command()
+async def suggest(ctx, *message):
+    #if not ctx.message.guild:
+    message = ' '.join(message)
+    channel = bot.get_channel(SETTINGS['channels']['suggestions'])
+    await channel.send(message)
+
 @bot.command(aliases=['connect', 'c'])
 async def join(ctx):
     if ctx.message.author.voice:
