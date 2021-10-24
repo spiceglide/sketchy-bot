@@ -25,9 +25,6 @@ class Music:
                 info = ydl.extract_info(f'ytsearch1:{link}')['entries'][0]
             self.queue.append(info)
 
-            download_process = Process(target=ydl.download, args=([info['webpage_url']],))
-            download_process.start()
-
         return info
         
     def dequeue(self):
