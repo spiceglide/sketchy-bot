@@ -263,6 +263,7 @@ async def join(ctx):
     if ctx.message.author.voice:
         channel = ctx.message.author.voice.channel
         await channel.connect()
+        await ctx.send(embed=extra.create_embed({'title': 'Connected'}))
     else:
         await ctx.send("What do you want me to join?")
 
@@ -271,7 +272,8 @@ async def leave(ctx):
     client = ctx.message.guild.voice_client
     if client.is_connected():
         await client.disconnect()
-        music.clear()
+        music = Music(SETTINGS['music_path'])
+        await ctx.send(embed=extra.create_embed({'title': 'Disconnected'}))
     else:
         await ctx.send("What do you want me to leave?")
 
@@ -280,7 +282,7 @@ async def play(ctx, *link):
     link = ' '.join(link)
     client = ctx.message.guild.voice_client
 
-    queue = music.get_queue()
+    queue = music.queue
 
     def next(error):
         if music.loop:
@@ -335,16 +337,27 @@ async def resume(ctx):
 
 @bot.command(aliases=['q'])
 async def queue(ctx):
-    queue = music.get_queue()
+    queue = music.queue
 
     embed = discord.Embed(title='Queue')
-    if len(queue) == 0:
-        embed.description = 'Empty'
-    else:
-        names = ["Now playing"] + list(range(1, len(queue)))
-        for song, name in zip(queue, names):
-            embed.add_field(name=name, value=f'[{song["title"]}]({song["webpage_url"]})', inline=False)
+    if music.loop or music.loop_queue or music.shuffle:
+        if music.shuffle:
+            embed.description = "🔀 Shuffling queue"
+        elif music.loop:
+            embed.description = "🔂 Looping track"
+        elif music.loop_queue:
+            embed.description = "🔁 Looping queue"
 
+    names = ["Now playing"] + list(range(1, len(queue)))
+    for song, name in zip(queue, names):
+        embed.add_field(name=name, value=f'[{song["title"]}]({song["webpage_url"]})', inline=False)
+
+    await ctx.send(embed=embed)
+
+@bot.command(aliases=['nowplaying', 'np'])
+async def now_playing(ctx):
+    song = music.queue[0]
+    embed = extra.create_embed({'title': "Now playing", 'description': f'[{song["title"]}]({song["webpage_url"]})'})
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['l'])
@@ -352,7 +365,7 @@ async def loop(ctx):
     async with ctx.channel.typing():
         music.loop = not music.loop
 
-    song = music.get_queue()[0]
+    song = music.queue[0]
     status = 'Looping' if music.loop else 'Stopped looping'
     embed = extra.create_embed({
         'title': 'Queue',
@@ -376,15 +389,16 @@ async def loop_queue(ctx):
 async def shuffle(ctx):
     music.shuffle = not music.shuffle
 
+    status = 'Shuffling' if music.shuffle else 'Stopped shuffling'
     embed = extra.create_embed({
         'title': 'Queue',
-        'description': 'Shuffling queue',
+        'description': f'{status} queue',
     })
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['s'])
 async def skip(ctx):
-    song = music.get_queue()[0]
+    song = music.queue[0]
     music.skipping = True
 
     async with ctx.channel.typing():
@@ -408,7 +422,7 @@ async def jump(ctx, number):
             music.dequeue()
         client.stop()
 
-    song = music.get_queue()[0]
+    song = music.queue[0]
     embed = extra.create_embed({
         'title': 'Queue',
         'description': f'Skipped to [{song["title"]}]({song["webpage_url"]})'

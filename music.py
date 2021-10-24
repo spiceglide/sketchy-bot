@@ -30,7 +30,7 @@ class Music:
         
     def dequeue(self):
         if self.shuffle:
-            self.queue = shuffle(self.queue)
+            shuffle(self.queue)
         else:
             song = self.queue.pop(0)
             
@@ -46,6 +46,3 @@ class Music:
         self.queue = []
         for file in os.listdir(self.path):
             os.remove(f'{self.path}/{file}')
-    
-    def get_queue(self):
-        return self.queue
