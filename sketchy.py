@@ -8,9 +8,21 @@ import sqlite3
 
 load_dotenv()
 
+# Import settings
+TOKEN = os.getenv('SKETCHY_TOKEN')
+GUILD = int(os.getenv('SKETCHY_GUILD'))
+DATABASE_PATH = os.getenv('SKETCHY_DATABASE_PATH')
+PREFIX = os.getenv('SKETCHY_PREFIX')
+GAMES_CHANNEL = int(os.getenv('SKETCHY_GAMES_CHANNEL'))
+REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
+SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
+UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
+ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
+SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
+
 # Set up the database if it doesn't already exist
-if not os.path.exists('data.db'):
-    connection = sqlite3.connect('data.db')
+if not os.path.exists(DATABASE_PATH):
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
     # TODO: Implement role-setting features using the database
@@ -24,16 +36,6 @@ if not os.path.exists('data.db'):
     connection.commit()
     connection.close()
     print('Set up database!')
-
-TOKEN = os.getenv('SKETCHY_TOKEN')
-GUILD = int(os.getenv('SKETCHY_GUILD'))
-PREFIX = os.getenv('SKETCHY_PREFIX')
-GAMES_CHANNEL = int(os.getenv('SKETCHY_GAMES_CHANNEL'))
-REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
-SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
-UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
-ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
-SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
 
 intents = discord.Intents.default()
 intents.members = True
@@ -57,7 +59,7 @@ async def on_ready():
         activity=discord.Activity(type=discord.ActivityType.watching, name='the stars'),
     )
 
-    connection = sqlite3.connect('data.db')
+    connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
     # Make sure database is up-to-date
