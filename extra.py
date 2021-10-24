@@ -1,6 +1,7 @@
 from sqlite_context_manager import db
 
 import os
+import logging
 import re
 import json
 import sqlite3
@@ -19,7 +20,7 @@ def setup_db(path):
                             (id INTEGER PRIMARY KEY,
                             role INTEGER,
                             FOREIGN KEY(role) REFERENCES roles(id) ON DELETE SET NULL)''')
-            print('Set up database!')
+            logging.info('Set up database!')
 
 def read_json(path):
     """Read JSON from a file into a Python object."""
@@ -34,7 +35,7 @@ def update_members_db(members, db_path):
             member_exists = cursor.execute('SELECT EXISTS(SELECT id FROM members WHERE id = ?)', (member.id,)).fetchone()
             if member_exists[0] == 0:
                 cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
-        print('Database updated!')
+        logging.info('Database updated!')
 
 def add_member_db(member, db_path):
     """Add a new member to the database."""

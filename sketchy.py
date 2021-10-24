@@ -5,6 +5,7 @@ import handlers
 from sqlite_context_manager import db
 
 import json
+import logging
 import os
 from copy import copy
 from sys import exit
@@ -13,6 +14,7 @@ import sqlite3
 import discord
 from discord.ext import commands
 
+logging.basicConfig(level=logging.INFO)
 SETTINGS = extra.import_settings()
 extra.setup_db(SETTINGS['database_path'])
 AUTOROLES = extra.read_json(SETTINGS['autoroles_path'])
@@ -28,7 +30,7 @@ bot = commands.Bot(command_prefix=SETTINGS['prefix'], intents=intents)
 @bot.event
 async def on_ready():
     guild = bot.get_guild(SETTINGS['guild'])
-    print(
+    logging.info(
         'Connection established\n'
         f'User name:  {bot.user.name}\n'
         f'User ID:    {bot.user.id}\n'
@@ -61,8 +63,8 @@ async def on_ready():
             for emoji in autorole['reactions']:
                 await message.add_reaction(emoji)
 
-        print('Auto-roles set up!')
-        print('Please set the message IDs in the autoroles.json file and disable the SKETCHY_SETUP_AUTOROLES flag before restarting')
+        logging.info('Auto-roles set up!')
+        logging.info('Please set the message IDs in the autoroles.json file and disable the SKETCHY_SETUP_AUTOROLES flag before restarting')
         exit()
 
 @bot.event

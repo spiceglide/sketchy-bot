@@ -1,6 +1,8 @@
 import extra
 import discord
 
+import logging
+
 async def handle_dm(bot, message, reports_channel_id):
     """Handler for direct messages received by the bot."""
     if message.author != bot.user:
@@ -41,7 +43,7 @@ async def handle_notifications(message, *, sometimes_role, always_role, channel_
             else:
                 await extra.send_dm_embed(embed, member)
         except Exception as e:
-            print(e)
+            logging.error(e)
 
 async def handle_suggestions(message):
     """Handler for messages sent in the suggestions channel."""
