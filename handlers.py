@@ -19,23 +19,24 @@ async def handle_notifications(message, *, sometimes_role, always_role, channel_
     embed = discord.Embed(title='A game is being hosted!', description=message.content)
     embed.add_field(name="Host", value=message.author.name)
 
-    channel = message.channel
-    guild = channel.guild
+    guild = message.guild
     channel_role = guild.get_role(channel_role)
+    always_role = guild.get_role(always_role)
+    sometimes_role = guild.get_role(sometimes_role)
     pings_channel = guild.get_channel(pings_channel)
 
-    for member in message.guild.members:
+    for member in guild.members:
         try:
             if member.bot:
                 continue
 
-            roles = member.roles
-            # Don't notify offline users
-            if message.guild.get_role(sometimes_role) in roles:
+            if always_role in member.roles:
+                pass
+            elif sometimes_role in member.roles:
                 if member.status == discord.Status.offline:
                     continue
-            elif message.guild.get_role(always_role) in roles:
-                pass
+            else:
+                continue
 
             # Send message via user's preferred method
             if channel_role in member.roles:
