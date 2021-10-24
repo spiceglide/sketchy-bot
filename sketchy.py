@@ -25,7 +25,6 @@ if not os.path.exists(DATABASE_PATH):
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
 
-    # TODO: Implement role-setting features using the database
     cursor.execute('''CREATE TABLE roles
                       (id INTEGER PRIMARY KEY)''')
     cursor.execute('''CREATE TABLE members
@@ -161,5 +160,45 @@ async def approve(ctx, member: discord.Member):
     await member.remove_roles(unverified_role)
     await member.add_roles(notify_role)
     await ctx.message.add_reaction('👍')
+
+@bot.command()
+async def role(ctx, color, *name):
+    name = ' '.join(name)
+    red, green, blue = bytes.fromhex(color.lstrip('#'))
+    color = discord.Color.from_rgb(red, green, blue)
+    guild = bot.get_guild(GUILD)
+
+    connection = sqlite3.connect(DATABASE_PATH)
+    cursor = connection.cursor()
+
+    role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
+    # If no assigned role, create a new one
+    if role_assigned[0] == None:
+        role = await guild.create_role(name=name, color=color)
+        await ctx.author.add_roles(role)
+        cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
+
+        name_message = role.name
+        color_message = str(role.color)
+    else:
+        role = guild.get_role(role_assigned[0])
+        name_message = role.name
+        color_message = str(role.color)
+
+        if name == '':
+            await role.edit(color=color)
+            color_message += f' → {str(role.color)}'
+        else:
+            await role.edit(name=name, color=color)
+            name_message += f' → {role.name}'
+            color_message += f' → {str(role.color)}'
+
+    embed = discord.Embed(title='Role update')
+    embed.add_field(name="Name", value=name_message, inline=False)
+    embed.add_field(name="Color", value=color_message, inline=False)
+    await ctx.send(embed=embed)
+
+    connection.commit()
+    connection.close()
 
 bot.run(TOKEN)
