@@ -9,6 +9,7 @@ load_dotenv()
 TOKEN = os.getenv('SKETCHY_TOKEN')
 GUILD = int(os.getenv('SKETCHY_GUILD'))
 PREFIX = os.getenv('SKETCHY_PREFIX')
+REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
 
 intents = discord.Intents.default()
@@ -42,6 +43,18 @@ async def on_member_join(member):
     # A welcoming message
     dm = await member.create_dm()
     await dm.send('Welcome to Sketchspace!')
+
+@bot.event
+async def on_message(message):
+    # Direct messages
+    if not message.guild:
+        if message.author != bot.user:
+            channel = bot.get_channel(REPORTS_CHANNEL)
+            await channel.send(f'>>> {message.content}')
+            await message.add_reaction('👍')
+
+    # Process any commands
+    await bot.process_commands(message)
 
 @bot.command()
 async def ban(ctx):
