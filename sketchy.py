@@ -229,7 +229,7 @@ async def role(ctx, color, *name):
             'title': 'Role update',
             'Name': summary['name'],
             'Color': summary['color'],
-        }, inline=False)
+        }, inline=False, color=color)
         await ctx.send(embed=embed)
 
 bot.run(SETTINGS['token'])

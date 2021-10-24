@@ -66,9 +66,9 @@ def compare_roles(old_role, new_role):
 
     return {"name": name_message, "color": color_message}
 
-def create_embed(options, inline=True):
+def create_embed(options, inline=True, color=None):
     """Create an embed from a dictionary of options."""
-    embed = discord.Embed()
+    embed = discord.Embed(color=color)
 
     if 'title' in options:
         embed.title = options.pop('title')
