@@ -9,7 +9,7 @@ async def handle_notifications(message, *, sometimes_role, always_role, channel_
         return
 
     embed = discord.Embed(title='A game is being hosted!', description=message.content)
-    embed.add_field(name="Host", value=message.author.name)
+    embed.add_field(name='Host', value=message.author.name)
 
     guild = message.guild
     channel_role = guild.get_role(channel_role)

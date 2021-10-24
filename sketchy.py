@@ -16,7 +16,7 @@ import sqlite3
 import discord
 from discord.ext import commands
 
-logging.basicConfig(filename="log.txt", level=logging.INFO)
+logging.basicConfig(filename='log.txt', level=logging.INFO)
 SETTINGS = extra.read_json('config.json')
 extra.setup_db(SETTINGS['paths']['database'])
 AUTOROLES = extra.read_json(SETTINGS['paths']['autoroles'])['autoroles']
@@ -31,7 +31,7 @@ bot = commands.Bot(command_prefix=SETTINGS['prefix'], intents=intents)
 music = Music(SETTINGS['paths']['music'])
 
 async def run_blocking(blocking_func, *args, **kwargs):
-    """Runs a blocking function in a non-blocking way"""
+    """Runs a blocking function in a non-blocking way."""
     func = functools.partial(blocking_func, *args, **kwargs)
     return await bot.loop.run_in_executor(None, func)
 
@@ -280,7 +280,7 @@ async def join(ctx):
         await channel.connect()
         await ctx.send(embed=extra.create_embed({'title': 'Connected'}))
     else:
-        await ctx.send("What do you want me to join?")
+        await ctx.send('What do you want me to join?')
 
 @bot.command(aliases=['disconnect', 'dc'])
 async def leave(ctx):
@@ -290,7 +290,7 @@ async def leave(ctx):
         music = Music(SETTINGS['paths']['music'])
         await ctx.send(embed=extra.create_embed({'title': 'Disconnected'}))
     else:
-        await ctx.send("What do you want me to leave?")
+        await ctx.send('What do you want me to leave?')
 
 @bot.command(aliases=['p'])
 async def play(ctx, *link):
@@ -357,13 +357,13 @@ async def queue(ctx):
     embed = discord.Embed(title='Queue')
     if music.loop or music.loop_queue or music.shuffle:
         if music.shuffle:
-            embed.description = "🔀 Shuffling queue"
+            embed.description = '🔀 Shuffling queue'
         elif music.loop:
-            embed.description = "🔂 Looping track"
+            embed.description = '🔂 Looping track'
         elif music.loop_queue:
-            embed.description = "🔁 Looping queue"
+            embed.description = '🔁 Looping queue'
 
-    names = ["Now playing"] + list(range(1, len(queue)))
+    names = ['Now playing'] + list(range(1, len(queue)))
     for song, name in zip(queue, names):
         embed.add_field(name=name, value=f'[{song["title"]}]({song["webpage_url"]})', inline=False)
 
@@ -372,7 +372,7 @@ async def queue(ctx):
 @bot.command(aliases=['nowplaying', 'np'])
 async def now_playing(ctx):
     song = music.queue[0]
-    embed = extra.create_embed({'title': "Now playing", 'description': f'[{song["title"]}]({song["webpage_url"]})'})
+    embed = extra.create_embed({'title': 'Now playing', 'description': f'[{song["title"]}]({song["webpage_url"]})'})
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['l'])
