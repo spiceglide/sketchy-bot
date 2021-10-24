@@ -14,7 +14,7 @@ import sqlite3
 import discord
 from discord.ext import commands
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(filename="log.txt", level=logging.INFO)
 SETTINGS = extra.import_settings()
 extra.setup_db(SETTINGS['database_path'])
 AUTOROLES = extra.read_json(SETTINGS['autoroles_path'])
