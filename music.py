@@ -1,8 +1,6 @@
 from extra import has_url
 
 import os
-from asyncio import sleep
-from multiprocessing import Process
 
 from discord import FFmpegPCMAudio
 from yt_dlp import YoutubeDL
@@ -44,13 +42,6 @@ class Music:
     def play(self):
         current_song = self.queue[0]
         song_path = f'{self.path}/{current_song["id"]}'
-
-        while True:
-            if os.path.exists(song_path):
-                break
-            elif os.path.exists(f'{song_path}.part'):
-                sleep(5)
-
         return FFmpegPCMAudio(song_path, options=self.ffmpeg_options)
 
     def clear(self):

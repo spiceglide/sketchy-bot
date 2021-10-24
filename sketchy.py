@@ -2,6 +2,7 @@
 
 import extra
 import handlers
+import functools
 from music import Music
 from sqlite_context_manager import db
 
@@ -28,6 +29,11 @@ intents.reactions = True
 
 bot = commands.Bot(command_prefix=SETTINGS['prefix'], intents=intents)
 music = Music(SETTINGS['music_path'])
+
+async def run_blocking(blocking_func, *args, **kwargs):
+    """Runs a blocking function in a non-blocking way"""
+    func = functools.partial(blocking_func, *args, **kwargs)
+    return await bot.loop.run_in_executor(None, func)
 
 @bot.event
 async def on_ready():
@@ -291,7 +297,7 @@ async def play(ctx, *link):
                 client.play(audio, after=next)
 
     async with ctx.channel.typing():
-        song = music.enqueue(link)
+        song = await run_blocking(music.enqueue, link)
 
     embed = extra.create_embed({
         'title': 'Added to queue',
