@@ -1,6 +1,5 @@
 import os
-from threading import Thread
-from discord import FFmpegPCMAudio, PCMVolumeTransformer
+from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
 
 class Music:
@@ -24,7 +23,7 @@ class Music:
     
     def play(self):
         current_song = self.queue[0]
-        return FFmpegPCMAudio(f'{self.path}/{current_song["id"]}')
+        return FFmpegPCMAudio(f'{self.path}/{current_song["id"]}', options=self.ffmpeg_options)
 
     def skip(self):
         self.dequeue()
