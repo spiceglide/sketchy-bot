@@ -77,12 +77,14 @@ async def on_member_join(member):
     await extra.send_dm_embed(embed, member)
 
     extra.add_member_db(member, SETTINGS['database_path'])
+    logging.info(f'Member {member} joined')
 
 @bot.event
 async def on_message(message):
     # Direct messages
     if not message.guild:
         await handlers.handle_dm(bot, message, SETTINGS['reports_channel'])
+        logging.info('DM handled')
     # Game notifications
     elif message.channel == bot.get_channel(SETTINGS['games_channel']):
         await handlers.handle_notifications(
@@ -92,13 +94,16 @@ async def on_message(message):
             channel_role=SETTINGS['channel_ping_role'],
             pings_channel=SETTINGS['pings_channel'],
         )
+        logging.info('Notification handled')
     # Suggestions
     elif message.channel == bot.get_channel(SETTINGS['suggestions_channel']):
         await handlers.handle_suggestions(message)
+        logging.info('Suggestion handled')
         return
     # Mentions
     elif bot.user.mentioned_in(message):
         await handlers.handle_mentions(message)
+        logging.info('Mention handled')
 
     # Process any commands
     await bot.process_commands(message)
@@ -110,6 +115,7 @@ async def on_guild_role_delete(role):
         if role_is_relevant[0] != 0:
             cursor.execute('DELETE FROM roles WHERE id = ?', (role.id,))
             cursor.execute('UPDATE members SET role = NULL WHERE role = ?', (role.id,))
+    logging.info(f'Role {role} deleted')
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -122,6 +128,7 @@ async def on_raw_reaction_add(payload):
     data = extra.get_autorole_data(payload.message_id, AUTOROLES)
     role = extra.get_autorole_role_from_reaction(payload.emoji.name, data, guild)
     await payload.member.add_roles(role)
+    logging.info(f'Role {role} added to member {payload.member}')
 
 @bot.event
 async def on_raw_reaction_remove(payload):
@@ -136,6 +143,7 @@ async def on_raw_reaction_remove(payload):
 
     member = guild.get_member(payload.user_id)
     await member.remove_roles(role)
+    logging.info(f'Role {role} removed from member {member}')
 
 @bot.command()
 @commands.has_permissions(ban_members=True)
@@ -150,6 +158,7 @@ async def ban(ctx, member: discord.Member, *reason):
     await extra.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
     await member.ban(reason=reason)
+    logging.info(f'Member {member} banned')
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
@@ -164,6 +173,7 @@ async def kick(ctx, member: discord.Member, *reason):
     await extra.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
     await member.kick(reason=reason)
+    logging.info(f'Member {member} kicked')
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -182,6 +192,7 @@ async def warn(ctx, member: discord.Member, *reason):
 
     await extra.send_dm_embed(embed, member)
     await ctx.send(embed=embed)
+    logging.info(f'Member {member} warned')
 
 @bot.command()
 @commands.has_permissions(manage_roles=True)
@@ -191,6 +202,7 @@ async def approve(ctx, member: discord.Member):
 
     await member.add_roles(verified_role, notify_role)
     await ctx.message.add_reaction('👍')
+    logging.info(f'Member {member} approved')
 
 @bot.command()
 async def role(ctx, color, *name):
@@ -231,5 +243,6 @@ async def role(ctx, color, *name):
             'Color': summary['color'],
         }, inline=False, color=color)
         await ctx.send(embed=embed)
+    logging.info(f'Role for member {ctx.author} updated')
 
 bot.run(SETTINGS['token'])
