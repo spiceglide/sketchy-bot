@@ -8,11 +8,12 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv('SKETCHY_TOKEN')
 GUILD = int(os.getenv('SKETCHY_GUILD'))
+PREFIX = os.getenv('SKETCHY_PREFIX')
 
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
 @bot.event
 async def on_ready():
@@ -23,6 +24,11 @@ async def on_ready():
         f'User ID:    {bot.user.id}\n'
         f'Guild name: {guild.name}\n'
         f'Guild ID:   {guild.id}\n'
+    )
+
+    await bot.change_presence(
+        status=discord.Status.idle,
+        activity=discord.Activity(type=discord.ActivityType.watching, name='the stars'),
     )
 
 bot.run(TOKEN)
