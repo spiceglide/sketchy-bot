@@ -356,6 +356,18 @@ async def loop(ctx):
         })
     await ctx.send(embed=embed)
 
+@bot.command(aliases=['lq'])
+async def loop_queue(ctx):
+    async with ctx.channel.typing():
+        music.toggle_loop_queue()
+
+    status = 'Looping' if music.is_looping_queue() else 'Stopped looping'
+    embed = extra.create_embed({
+        'title': 'Queue',
+        'description': f'{status} queue'
+    })
+    await ctx.send(embed=embed)
+
 @bot.command(aliases=['s'])
 async def skip(ctx):
     async with ctx.channel.typing():

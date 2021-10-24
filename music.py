@@ -9,6 +9,7 @@ class Music:
         self.path = path
         self.queue = []
         self.loop = False
+        self.loop_queue = False
 
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
         self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{path}/%(id)s', 'quiet': True}
@@ -25,7 +26,10 @@ class Music:
             return info
         
     def dequeue(self):
-        self.queue.pop(0)
+        song = self.queue.pop(0)
+        
+        if self.loop_queue:
+            self.queue.append(song)
     
     def play(self):
         current_song = self.queue[0]
@@ -43,8 +47,14 @@ class Music:
     def toggle_loop(self):
         self.loop = not self.loop
 
+    def toggle_loop_queue(self):
+        self.loop_queue = not self.loop_queue
+
     def is_looping(self):
         return self.loop
+
+    def is_looping_queue(self):
+        return self.loop_queue
     
     def get_queue(self):
         return self.queue
