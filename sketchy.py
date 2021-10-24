@@ -274,11 +274,15 @@ async def play(ctx, *link):
     client = ctx.message.guild.voice_client
 
     music.enqueue(link)
-    await ctx.send("Added to queue")
+    queue = music.get_queue()
+    song = queue[-1]
+    embed = extra.create_embed({
+        'title': 'Added to queue',
+        'Title': song['title'],
+    })
+    await ctx.send(embed=embed)
 
     def next(error):
-        queue = music.get_queue()
-
         if music.is_looping():
             audio = music.play()
             client.play(audio, after=next)
