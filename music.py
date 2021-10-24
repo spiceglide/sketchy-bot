@@ -22,9 +22,15 @@ class Music:
         with YoutubeDL(self.youtube_dl_options) as ydl:
             if has_url(link):
                 info = ydl.extract_info(link)
+
+                if 'entries' in info:
+                    for track in info['entries']:
+                        self.queue.append(track)
+                else:
+                    self.queue.append(info)
             else:
                 info = ydl.extract_info(f'ytsearch1:{link}')['entries'][0]
-            self.queue.append(info)
+                self.queue.append(info)
 
         return info
         
