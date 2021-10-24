@@ -2,6 +2,9 @@ import os
 import re
 import json
 import sqlite3
+from typing import Dict, Tuple
+
+import discord
 
 def setup_db(path):
     """Sets up a database if it doesn't already exist."""
@@ -58,6 +61,7 @@ def has_url(text):
     return contains_link
 
 def compare_roles(old_role, new_role):
+    """Compare name and color of two roles and return a dictionary of strings showing the changes."""
     if old_role.name == new_role.name:
         name_message = new_role.name
     else:
@@ -69,3 +73,48 @@ def compare_roles(old_role, new_role):
         color_message = f'{str(old_role.color)} → {str(new_role.color)}'
 
     return {"name": name_message, "color": color_message}
+
+async def send_dm_embed(embed, recipient):
+    """Send an embed to a member."""
+    dm = await recipient.create_dm()
+    await dm.send(embed=embed)
+
+async def handle_dm(bot, message, reports_channel_id):
+    """Handler for direct messages received by the bot."""
+    if message.author != bot.user:
+        channel = bot.get_channel(reports_channel_id)
+        embed = discord.Embed(title='Report', description=message.content)
+        await channel.send(embed=embed)
+        await message.add_reaction('👍')
+
+async def handle_notifications(message, *, sometimes_role, always_role):
+    """Handler for notifications that the bot must deliver."""
+    if has_url(message.content):
+        return
+
+    for member in message.guild.members:
+        try:
+            roles = member.roles
+            # Don't notify offline users
+            if message.guild.get_role(sometimes_role) in roles:
+                if member.status == discord.Status.offline:
+                    continue
+            elif message.guild.get_role(always_role) in roles:
+                pass
+
+            # Format message
+            embed = discord.Embed(title='A game is being hosted!', description=message.content)
+            embed.add_field(name="Host", value=message.author.name)
+
+            await send_dm_embed(embed, member)
+        except:
+            pass
+
+async def handle_suggestions(message):
+    """Handler for messages sent in the suggestions channel."""
+    await message.add_reaction('👍')
+    await message.add_reaction('👎')
+
+async def handle_mentions(message):
+    """Handler for messages sent in the suggestions channel."""
+    await message.add_reaction('🤍')

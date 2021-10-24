@@ -92,8 +92,7 @@ async def on_member_join(member):
 
         # A welcoming message
         embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
-        dm = await member.create_dm()
-        await dm.send(embed=embed)
+        await extra.send_dm_embed(embed, member)
 
     extra.add_member_db(member, DATABASE_PATH)
 
@@ -101,42 +100,21 @@ async def on_member_join(member):
 async def on_message(message):
     # Direct messages
     if not message.guild:
-        if message.author != bot.user:
-            channel = bot.get_channel(REPORTS_CHANNEL)
-            embed = discord.Embed(title='Report', description=message.content)
-            await channel.send(embed=embed)
-            await message.add_reaction('👍')
+        await extra.handle_dm(bot, message, REPORTS_CHANNEL)
     # Game notifications
     elif message.channel == bot.get_channel(GAMES_CHANNEL):
-        if extra.has_url(message.content):
-            return
-
-        for member in message.guild.members:
-            try:
-                roles = member.roles
-                # Don't notify offline users
-                if message.guild.get_role(SOMETIMES_PING_ROLE) in roles:
-                    if member.status == discord.Status.offline:
-                        continue
-                elif message.guild.get_role(ALWAYS_PING_ROLE) in roles:
-                    pass
-
-                # Format message
-                embed = discord.Embed(title='A game is being hosted!', description=message.content)
-                embed.add_field(name="Host", value=message.author.name)
-
-                # Send
-                dm = await member.create_dm()
-                await dm.send(embed=embed)
-            except:
-                pass
+        await extra.handle_notifications(
+            message,
+            sometimes_role=SOMETIMES_PING_ROLE,
+            always_role=ALWAYS_PING_ROLE
+        )
     # Suggestions
     elif message.channel == bot.get_channel(SUGGESTIONS_CHANNEL):
-        await message.add_reaction('👍')
-        await message.add_reaction('👎')
+        await extra.handle_suggestions(message)
+        return
     # Mentions
     elif bot.user.mentioned_in(message):
-        await message.add_reaction('🤍')
+        await extra.handle_mentions(message)
 
     # Process any commands
     await bot.process_commands(message)
@@ -204,8 +182,7 @@ async def ban(ctx, member: discord.Member, *reason):
     embed.add_field(name='Reason', value=reason)
     await ctx.send(embed=embed)
 
-    dm = await member.create_dm()
-    await dm.send(embed=embed)
+    await extra.send_dm_embed(embed, member)
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
@@ -217,8 +194,7 @@ async def kick(ctx, member: discord.Member, *reason):
     embed.add_field(name='Reason', value=reason)
     await ctx.send(embed=embed)
 
-    dm = await member.create_dm()
-    await dm.send(embed=embed)
+    await extra.send_dm_embed(embed, member)
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -234,8 +210,7 @@ async def warn(ctx, member: discord.Member, *reason):
     embed.add_field(name='Reason', value=reason)
     await ctx.send(embed=embed)
 
-    dm = await member.create_dm()
-    await dm.send(embed=embed)
+    await extra.send_dm_embed(embed, member)
 
 @bot.command()
 @commands.has_permissions(manage_roles=True)
