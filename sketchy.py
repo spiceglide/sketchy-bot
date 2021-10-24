@@ -354,7 +354,7 @@ async def loop(ctx):
     })
     await ctx.send(embed=embed)
 
-@bot.command(aliases=['loop_queue', 'loopq', 'lq'])
+@bot.command(aliases=['loopqueue', 'loopq', 'lq'])
 async def loop_queue(ctx):
     async with ctx.channel.typing():
         music.loop_queue = not music.loop_queue
