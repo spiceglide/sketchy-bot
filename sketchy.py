@@ -34,8 +34,8 @@ GAMES_CHANNEL = int(os.getenv('SKETCHY_GAMES_CHANNEL'))
 REPORTS_CHANNEL = int(os.getenv('SKETCHY_REPORTS_CHANNEL'))
 SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
-ALWAYS_PING = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
-SOMETIMES_PING = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
+ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
+SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
 
 intents = discord.Intents.default()
 intents.members = True
@@ -88,10 +88,10 @@ async def on_message(message):
 
             roles = member.roles
             # Don't notify offline users
-            if message.guild.get_role(SOMETIMES_PING) in roles:
+            if message.guild.get_role(SOMETIMES_PING_ROLE) in roles:
                 if member.status == discord.Status.offline:
                     continue
-            elif message.guild.get_role(ALWAYS_PING) in roles:
+            elif message.guild.get_role(ALWAYS_PING_ROLE) in roles:
                 pass
 
             # Format message
@@ -113,15 +113,39 @@ async def on_message(message):
     await bot.process_commands(message)
 
 @bot.command()
-async def ban(ctx):
-    await ctx.send('Sorry! Banning is not implemented yet')
+@commands.has_permissions(ban_members=True)
+async def ban(ctx, member: discord.Member):
+    await member.ban()
+    embed = discord.Embed(title='Ban', description=f'{member.name} has been banned.')
+    await ctx.send(embed=embed)
 
 @bot.command()
-async def kick(ctx):
-    await ctx.send('Sorry! Kicking is not implemented yet')
+@commands.has_permissions(kick_members=True)
+async def kick(ctx, member: discord.Member):
+    await member.kick()
+    embed = discord.Embed(title='Kick', description=f'{member.name} has been kicked.')
+    await ctx.send(embed=embed)
 
 @bot.command()
-async def mute(ctx):
+@commands.has_permissions(manage_messages=True)
+async def mute(ctx, member: discord.Member):
     await ctx.send('Sorry! Muting is not implemented yet')
+
+@bot.command()
+@commands.has_permissions(kick_members=True)
+async def warn(ctx, member: discord.Member):
+    embed = discord.Embed(title='Warning', description=f'{member.name} has been warned.')
+    await ctx.send(embed=embed)
+
+@bot.command()
+@commands.has_permissions(manage_roles=True)
+async def approve(ctx, member: discord.Member):
+    guild = bot.get_guild(GUILD)
+    unverified_role = guild.get_role(UNVERIFIED_ROLE)
+    notify_role = guild.get_role(SOMETIMES_PING_ROLE)
+
+    await member.remove_roles(unverified_role)
+    await member.add_roles(notify_role)
+    await ctx.add_reaction('👍')
 
 bot.run(TOKEN)
