@@ -363,15 +363,21 @@ async def resume(ctx):
 @bot.command(aliases=['q'])
 async def queue(ctx):
     queue = music.queue
+    embed = discord.Embed(title='Queue', description='')
 
-    embed = discord.Embed(title='Queue')
+    if music.nightcore or music.bass_boosted:
+        if music.nightcore:
+            embed.description += '\n📻 Nightcore'
+        elif music.bass_boosted:
+            embed.description += '\n📻 Bass boosted'
+
     if music.loop or music.loop_queue or music.shuffle:
         if music.shuffle:
-            embed.description = '🔀 Shuffling queue'
+            embed.description += '\n🔀 Shuffling queue'
         elif music.loop:
-            embed.description = '🔂 Looping track'
+            embed.description += '\n🔂 Looping track'
         elif music.loop_queue:
-            embed.description = '🔁 Looping queue'
+            embed.description += '\n🔁 Looping queue'
 
     names = ['Now playing'] + list(range(1, len(queue)))
     for song, name in zip(queue, names):
@@ -424,6 +430,30 @@ async def shuffle(ctx):
     embed = common.create_embed({
         'title': 'Queue',
         'description': f'{status} queue',
+    })
+    await ctx.send(embed=embed)
+
+@bot.command(aliases=['nc', 'weeb'])
+async def nightcore(ctx):
+    music.nightcore = not music.nightcore
+    music.bass_boosted = False
+
+    status = 'ON' if music.nightcore else 'OFF'
+    embed = common.create_embed({
+        'title': 'Queue',
+        'description': f'Nightcore {status}',
+    })
+    await ctx.send(embed=embed)
+
+@bot.command(aliases=['bassboost', 'bass_boosted', 'bassboosted', 'bass'])
+async def bass_boost(ctx):
+    music.bass_boosted = not music.bass_boosted
+    music.nightcore = False
+
+    status = 'ON' if music.bass_boosted else 'OFF'
+    embed = common.create_embed({
+        'title': 'Queue',
+        'description': f'Bass boost {status}',
     })
     await ctx.send(embed=embed)
 

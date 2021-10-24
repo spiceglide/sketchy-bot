@@ -14,6 +14,8 @@ class Music:
         self.loop_queue = False
         self.shuffle = False
         self.skipping = False
+        self.nightcore = False
+        self.bass_boosted = False
 
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
         self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{path}/%(id)s', 'quiet': True}
@@ -50,6 +52,18 @@ class Music:
     def play(self):
         current_song = self.queue[0]
         song_path = f'{self.path}/{current_song["id"]}'
+
+        if self.nightcore:
+            if not os.path.exists(f'{song_path}-nightcore'):
+                filter = 'aformat=channel_layouts=stereo,asetrate=44100*4/3'
+                os.system(f'ffmpeg -i {song_path} -af "{filter}" -f webm -nostats -loglevel 0 {song_path}-nightcore')
+            song_path += '-nightcore'
+        elif self.bass_boosted:
+            if not os.path.exists(f'{song_path}-bass'):
+                filter = 'bass=g=12'
+                os.system(f'ffmpeg -i {song_path} -af "{filter}" -f webm -nostats -loglevel 0 {song_path}-bass')
+            song_path += '-bass'
+
         return FFmpegPCMAudio(song_path, options=self.ffmpeg_options)
 
     def clear(self):
