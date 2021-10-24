@@ -289,16 +289,6 @@ async def play(ctx, *link):
         await ctx.send("Okay, playing")
 
 @bot.command()
-async def stop(ctx):
-    client = ctx.message.guild.voice_client
-    if client.is_playing():
-        client.stop()
-        await ctx.send("Okay, stopped")
-    else:
-        await ctx.send("There's nothing to stop")
-
-
-@bot.command()
 async def pause(ctx):
     client = ctx.message.guild.voice_client
     if client.is_playing():
@@ -327,5 +317,17 @@ async def queue(ctx):
         embed.add_field(name=name, value=song['title'], inline=False)
 
     await ctx.send(embed=embed)
+
+@bot.command()
+async def skip(ctx):
+    client = ctx.message.guild.voice_client
+    client.stop()
+
+@bot.command()
+async def skipto(ctx, number):
+    client = ctx.message.guild.voice_client
+    client.stop()
+    for skip in number:
+        music.skip()
 
 bot.run(SETTINGS['token'])

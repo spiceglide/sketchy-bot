@@ -9,7 +9,7 @@ class Music:
         self.queue = []
 
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
-        self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{path}/%(id)s'}
+        self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{path}/%(id)s', 'quiet': True}
 
     def enqueue(self, link):
         with YoutubeDL(self.youtube_dl_options) as ydl:
@@ -24,6 +24,10 @@ class Music:
     def play(self):
         current_song = self.queue[0]
         return FFmpegPCMAudio(f'{self.path}/{current_song["id"]}')
+
+    def skip(self):
+        self.dequeue()
+        self.play()
     
     def get_queue(self):
         return self.queue
