@@ -22,6 +22,7 @@ async def handle_notifications(message, *, sometimes_role, always_role, channel_
     channel = message.channel
     guild = channel.guild
     channel_role = guild.get_role(channel_role)
+    pings_channel = guild.get_channel(pings_channel)
 
     for member in message.guild.members:
         try:
@@ -38,7 +39,6 @@ async def handle_notifications(message, *, sometimes_role, always_role, channel_
 
             # Send message via user's preferred method
             if channel_role in member.roles:
-                pings_channel = guild.get_channel(pings_channel)
                 await pings_channel.send(member.mention, embed=embed)
             else:
                 await extra.send_dm_embed(embed, member)
