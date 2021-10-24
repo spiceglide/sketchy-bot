@@ -1,0 +1,29 @@
+{
+    "token": "",
+    "guild": 111111111111111111,
+    "prefix": "!",
+
+    "setup": {
+        "autoroles": false
+    },
+    "paths": {
+        "database": "data.db",
+        "autoroles": "autoroles.json",
+        "music": "music"
+    },
+    "channels": {
+        "games": 111111111111111111,
+        "reports": 111111111111111111,
+        "roles": 111111111111111111,
+        "suggestions": 111111111111111111,
+        "pings": 111111111111111111
+    },
+    "roles": {
+        "verified": 111111111111111111,
+        "bot": 111111111111111111,
+        "always_ping": 111111111111111111,
+        "sometimes_ping": 111111111111111111,
+        "channel_ping": 111111111111111111,
+        "custom_boundary": 111111111111111111
+    }
+}

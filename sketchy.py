@@ -17,9 +17,10 @@ import discord
 from discord.ext import commands
 
 logging.basicConfig(filename="log.txt", level=logging.INFO)
-SETTINGS = extra.import_settings()
-extra.setup_db(SETTINGS['database_path'])
-AUTOROLES = extra.read_json(SETTINGS['autoroles_path'])
+SETTINGS = extra.read_json('config.json')
+extra.setup_db(SETTINGS['paths']['database'])
+AUTOROLES = extra.read_json(SETTINGS['paths']['autoroles'])['autoroles']
+print(AUTOROLES)
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -28,7 +29,7 @@ intents.presences = True
 intents.reactions = True
 
 bot = commands.Bot(command_prefix=SETTINGS['prefix'], intents=intents)
-music = Music(SETTINGS['music_path'])
+music = Music(SETTINGS['paths']['music'])
 
 async def run_blocking(blocking_func, *args, **kwargs):
     """Runs a blocking function in a non-blocking way"""
@@ -52,10 +53,10 @@ async def on_ready():
     )
 
     members = bot.get_all_members()
-    extra.update_members_db(members, SETTINGS['database_path'])
+    extra.update_members_db(members, SETTINGS['paths']['database'])
 
     # Create auto-role messages
-    if SETTINGS['setup_autoroles'] == 1:
+    if SETTINGS['setup']['autoroles']:
         for autorole in AUTOROLES:
             if autorole['message'] != 0:
                 continue
@@ -65,7 +66,7 @@ async def on_ready():
             for emoji, description in zip(autorole['reactions'], autorole['descriptions']):
                 embed.add_field(name=emoji, value=description)
 
-            channel = bot.get_channel(SETTINGS['roles_channel'])
+            channel = bot.get_channel(SETTINGS['channels']['roles'])
             message = await channel.send(embed=embed)
 
             for emoji in autorole['reactions']:
@@ -84,27 +85,27 @@ async def on_member_join(member):
     embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
     await extra.send_dm_embed(embed, member)
 
-    extra.add_member_db(member, SETTINGS['database_path'])
+    extra.add_member_db(member, SETTINGS['paths']['database'])
     logging.info(f'Member {member} joined')
 
 @bot.event
 async def on_message(message):
     # Direct messages
     if not message.guild:
-        await handlers.handle_dm(bot, message, SETTINGS['reports_channel'])
+        await handlers.handle_dm(bot, message, SETTINGS['channels']['reports'])
         logging.info('DM handled')
     # Game notifications
-    elif message.channel == bot.get_channel(SETTINGS['games_channel']):
+    elif message.channel == bot.get_channel(SETTINGS['channels']['games']):
         await handlers.handle_notifications(
             message,
-            sometimes_role=SETTINGS['sometimes_ping_role'],
-            always_role=SETTINGS['always_ping_role'],
-            channel_role=SETTINGS['channel_ping_role'],
-            pings_channel=SETTINGS['pings_channel'],
+            sometimes_role=SETTINGS['roles']['sometimes_ping'],
+            always_role=SETTINGS['roles']['always_ping'],
+            channel_role=SETTINGS['roles']['channel_ping'],
+            pings_channel=SETTINGS['channels']['pings'],
         )
         logging.info('Notification handled')
     # Suggestions
-    elif message.channel == bot.get_channel(SETTINGS['suggestions_channel']):
+    elif message.channel == bot.get_channel(SETTINGS['channels']['suggestions']):
         await handlers.handle_suggestions(message)
         logging.info('Suggestion handled')
         return
@@ -118,7 +119,7 @@ async def on_message(message):
 
 @bot.event
 async def on_guild_role_delete(role):
-    with db(SETTINGS['database_path']) as cursor:
+    with db(SETTINGS['paths']['database']) as cursor:
         role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
         if role_is_relevant[0] != 0:
             cursor.execute('DELETE FROM roles WHERE id = ?', (role.id,))
@@ -127,9 +128,9 @@ async def on_guild_role_delete(role):
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    if payload.channel_id != SETTINGS['roles_channel']:
+    if payload.channel_id != SETTINGS['channels']['roles']:
         return
-    if SETTINGS['setup_autoroles'] == 1:
+    if SETTINGS['setup']['autoroles']:
         return
 
     guild = bot.get_guild(SETTINGS['guild'])
@@ -140,9 +141,9 @@ async def on_raw_reaction_add(payload):
 
 @bot.event
 async def on_raw_reaction_remove(payload):
-    if payload.channel_id != SETTINGS['roles_channel']:
+    if payload.channel_id != SETTINGS['channels']['roles']:
         return
-    if SETTINGS['setup_autoroles'] == 1:
+    if SETTINGS['setup']['autoroles']:
         return
 
     guild = bot.get_guild(SETTINGS['guild'])
@@ -205,8 +206,8 @@ async def warn(ctx, member: discord.Member, *reason):
 @bot.command()
 @commands.has_permissions(manage_roles=True)
 async def approve(ctx, member: discord.Member):
-    verified_role = ctx.guild.get_role(SETTINGS['verified_role'])
-    notify_role = ctx.guild.get_role(SETTINGS['sometimes_ping_role'])
+    verified_role = ctx.guild.get_role(SETTINGS['roles']['verified'])
+    notify_role = ctx.guild.get_role(SETTINGS['roles']['sometimes_ping'])
 
     if member.bot:
         await member.add_roles(bot_role)
@@ -221,7 +222,7 @@ async def role(ctx, color, *name):
     name = ' '.join(name)
     color = extra.hex_to_color(color)
 
-    with db(SETTINGS['database_path']) as cursor:
+    with db(SETTINGS['paths']['database']) as cursor:
         role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
         # If no assigned role, create a new one
         if role_assigned[0] == None:
@@ -230,7 +231,7 @@ async def role(ctx, color, *name):
             new_role = role
 
             # Set role position above the generic roles
-            boundary_role = ctx.guild.get_role(SETTINGS['custom_boundary_role'])
+            boundary_role = ctx.guild.get_role(SETTINGS['roles']['custom_boundary'])
             role_position = boundary_role.position + 1
             await role.edit(position=role_position)
 
@@ -272,7 +273,7 @@ async def leave(ctx):
     client = ctx.message.guild.voice_client
     if client.is_connected():
         await client.disconnect()
-        music = Music(SETTINGS['music_path'])
+        music = Music(SETTINGS['paths']['music'])
         await ctx.send(embed=extra.create_embed({'title': 'Disconnected'}))
     else:
         await ctx.send("What do you want me to leave?")
