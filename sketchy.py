@@ -20,6 +20,7 @@ SUGGESTIONS_CHANNEL = int(os.getenv('SKETCHY_SUGGESTIONS_CHANNEL'))
 UNVERIFIED_ROLE = int(os.getenv('SKETCHY_UNVERIFIED_ROLE'))
 ALWAYS_PING_ROLE = int(os.getenv('SKETCHY_ALWAYS_PING_ROLE'))
 SOMETIMES_PING_ROLE = int(os.getenv('SKETCHY_SOMETIMES_PING_ROLE'))
+CUSTOM_BOUNDARY_ROLE = int(os.getenv('SKETCHY_CUSTOM_BOUNDARY_ROLE'))
 
 # Set up the database if it doesn't already exist
 if not os.path.exists(DATABASE_PATH):
@@ -222,6 +223,13 @@ async def role(ctx, color, *name):
     # If no assigned role, create a new one
     if role_assigned[0] == None:
         role = await guild.create_role(name=name, color=color)
+
+        # Set role position above the generic roles
+        boundary_role = guild.get_role(CUSTOM_BOUNDARY_ROLE)
+        role_position = boundary_role.position + 1
+        await role.edit(position=role_position)
+
+        # Add to user and database
         await ctx.author.add_roles(role)
         cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
         cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
