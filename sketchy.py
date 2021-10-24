@@ -87,10 +87,12 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
-    if not member.bot:
-        # A welcoming message
-        embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
-        await extra.send_dm_embed(embed, member)
+    if member.bot:
+        return
+
+    # A welcoming message
+    embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
+    await extra.send_dm_embed(embed, member)
 
     extra.add_member_db(member, DATABASE_PATH)
 
@@ -134,10 +136,9 @@ async def on_guild_role_delete(role):
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    if SETUP_AUTOROLES == 1:
-        return
-
     if payload.channel_id != ROLES_CHANNEL:
+        return
+    if SETUP_AUTOROLES == 1:
         return
 
     for autorole in AUTOROLES:
@@ -154,10 +155,9 @@ async def on_raw_reaction_add(payload):
 
 @bot.event
 async def on_raw_reaction_remove(payload):
-    if SETUP_AUTOROLES == 1:
-        return
-
     if payload.channel_id != ROLES_CHANNEL:
+        return
+    if SETUP_AUTOROLES == 1:
         return
 
     for autorole in AUTOROLES:
@@ -176,25 +176,23 @@ async def on_raw_reaction_remove(payload):
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-
-    await member.ban(reason=reason)
     embed = discord.Embed(title='Ban', description=f'{member.name} has been banned.')
     embed.add_field(name='Reason', value=reason)
-    await ctx.send(embed=embed)
 
     await extra.send_dm_embed(embed, member)
+    await ctx.send(embed=embed)
+    await member.ban(reason=reason)
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-
-    await member.kick(reason=reason)
     embed = discord.Embed(title='Kick', description=f'{member.name} has been kicked.')
     embed.add_field(name='Reason', value=reason)
-    await ctx.send(embed=embed)
 
     await extra.send_dm_embed(embed, member)
+    await ctx.send(embed=embed)
+    await member.kick(reason=reason)
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -205,22 +203,19 @@ async def mute(ctx, member: discord.Member):
 @commands.has_permissions(kick_members=True)
 async def warn(ctx, member: discord.Member, *reason):
     reason = ' '.join(reason)
-
     embed = discord.Embed(title='Warning', description=f'{member.name} has been warned.')
     embed.add_field(name='Reason', value=reason)
-    await ctx.send(embed=embed)
 
     await extra.send_dm_embed(embed, member)
+    await ctx.send(embed=embed)
 
 @bot.command()
 @commands.has_permissions(manage_roles=True)
 async def approve(ctx, member: discord.Member):
-    guild = bot.get_guild(GUILD)
-    verified_role = guild.get_role(VERIFIED_ROLE)
-    notify_role = guild.get_role(SOMETIMES_PING_ROLE)
+    verified_role = ctx.guild.get_role(VERIFIED_ROLE)
+    notify_role = ctx.guild.get_role(SOMETIMES_PING_ROLE)
 
-    await member.add_roles(verified_role)
-    await member.add_roles(notify_role)
+    await member.add_roles(verified_role, notify_role)
     await ctx.message.add_reaction('👍')
 
 @bot.command()
@@ -228,7 +223,6 @@ async def role(ctx, color, *name):
     name = ' '.join(name)
     red, green, blue = bytes.fromhex(color.lstrip('#'))
     color = discord.Color.from_rgb(red, green, blue)
-    guild = bot.get_guild(GUILD)
 
     connection = sqlite3.connect(DATABASE_PATH)
     cursor = connection.cursor()
@@ -236,13 +230,13 @@ async def role(ctx, color, *name):
     role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
     # If no assigned role, create a new one
     if role_assigned[0] == None:
-        role = await guild.create_role(name=name, color=color)
+        role = await ctx.guild.create_role(name=name, color=color)
 
         old_role = None
         new_role = role
 
         # Set role position above the generic roles
-        boundary_role = guild.get_role(CUSTOM_BOUNDARY_ROLE)
+        boundary_role = ctx.guild.get_role(CUSTOM_BOUNDARY_ROLE)
         role_position = boundary_role.position + 1
         await role.edit(position=role_position)
 
@@ -251,7 +245,7 @@ async def role(ctx, color, *name):
         cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
         cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
     else:
-        role = guild.get_role(role_assigned[0])
+        role = ctx.guild.get_role(role_assigned[0])
 
         old_role = copy(role)
 
