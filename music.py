@@ -1,8 +1,16 @@
 import os
+import functools
+import asyncio
 from extra import has_url
 
 from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
+
+def to_thread(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        return await asyncio.to_thread(func, *args, **kwargs)
+    return wrapper
 
 class Music:
     def __init__(self, path):
@@ -13,6 +21,7 @@ class Music:
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
         self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{path}/%(id)s', 'quiet': True}
 
+    @to_thread
     def enqueue(self, link):
         with YoutubeDL(self.youtube_dl_options) as ydl:
             if has_url(link):
@@ -22,6 +31,7 @@ class Music:
 
             self.queue.append(info)
             ydl.download([info['webpage_url']])
+            return info
         
     def dequeue(self):
         self.queue.pop(0)
@@ -37,7 +47,7 @@ class Music:
     def clear(self):
         self.queue = []
         for file in os.listdir(self.path):
-            os.remove(file)
+            os.remove(f'{self.path}/{file}')
 
     def toggle_loop(self):
         self.loop = not self.loop

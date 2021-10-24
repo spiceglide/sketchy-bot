@@ -274,14 +274,7 @@ async def play(ctx, *link):
     link = ' '.join(link)
     client = ctx.message.guild.voice_client
 
-    music.enqueue(link)
     queue = music.get_queue()
-    song = queue[-1]
-    embed = extra.create_embed({
-        'title': 'Added to queue',
-        'Title': song['title'],
-    })
-    await ctx.send(embed=embed)
 
     def next(error):
         if music.is_looping():
@@ -293,17 +286,27 @@ async def play(ctx, *link):
                 audio = music.play()
                 client.play(audio, after=next)
 
+    async with ctx.channel.typing():
+        song = await music.enqueue(link)
+        embed = extra.create_embed({
+            'title': 'Added to queue',
+            'Title': song['title'],
+        })
+        await ctx.send(embed=embed)
+
     if not client.is_playing():
         audio = music.play()
         client.play(audio, after=next)
-        await ctx.send("Okay, playing")
 
 @bot.command()
 async def pause(ctx):
     client = ctx.message.guild.voice_client
     if client.is_playing():
         client.pause()
-        await ctx.send("Okay, paused")
+        embed = extra.create_embed({
+            'title': 'Paused'
+        })
+        await ctx.send(embed=embed)
     else:
         await ctx.send("There's nothing to pause")
 
@@ -312,7 +315,10 @@ async def resume(ctx):
     client = ctx.message.guild.voice_client
     if not client.is_playing():
         client.resume()
-        await ctx.send("Okay, resumed")
+        embed = extra.create_embed({
+            'title': 'Resumed'
+        })
+        await ctx.send(embed=embed)
     else:
         await ctx.send("There's nothing to resume")
 
@@ -321,35 +327,68 @@ async def queue(ctx):
     queue = music.get_queue()
 
     embed = discord.Embed(title='Queue')
-
-    names = ["Now playing"] + list(range(1, len(queue)))
-    for song, name in zip(queue, names):
-        embed.add_field(name=name, value=song['title'], inline=False)
+    if len(queue) == 0:
+        embed.description = 'Empty'
+    else:
+        names = ["Now playing"] + list(range(1, len(queue)))
+        for song, name in zip(queue, names):
+            embed.add_field(name=name, value=song['title'], inline=False)
 
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['l'])
 async def loop(ctx):
-    music.toggle_loop()
-    status = "ON" if music.is_looping() else "OFF"
-    await ctx.send(f"Loop is {status}")
+    async with ctx.channel.typing():
+        music.toggle_loop()
+
+    status = 'Looping' if music.is_looping() else 'Stopped looping'
+    song = music.get_queue()[0]
+    if music.is_looping():
+        embed = extra.create_embed({
+            'title': 'Queue',
+            'description': f'{status} {song["title"]}'
+        })
+    await ctx.send(embed=embed)
 
 @bot.command(aliases=['s'])
 async def skip(ctx):
-    client = ctx.message.guild.voice_client
-    client.stop()
+    async with ctx.channel.typing():
+        client = ctx.message.guild.voice_client
+        client.stop()
+
+    song = music.get_queue()[0]
+    embed = extra.create_embed({
+        'title': 'Queue',
+        'description': f'Skipped {song["title"]}'
+    })
+    await ctx.send(embed=embed)
 
 @bot.command(aliases=['s2'])
 async def skipto(ctx, number):
-    client = ctx.message.guild.voice_client
-    client.stop()
-    for skip in number:
-        music.skip()
+    async with ctx.channel.typing():
+        client = ctx.message.guild.voice_client
+        client.stop()
+        for skip in number:
+            music.skip()
+
+    song = music.get_queue()[0]
+    embed = extra.create_embed({
+        'title': 'Queue',
+        'description': f'Skipped to {song["title"]}'
+    })
+    await ctx.send(embed=embed)
 
 @bot.command()
 async def clear(ctx):
-    client = ctx.message.guild.voice_client
-    client.stop()
-    music.clear()
+    async with ctx.channel.typing():
+        client = ctx.message.guild.voice_client
+        client.stop()
+        music.clear()
+
+    embed = extra.create_embed({
+        'title': 'Queue',
+        'description': 'Cleared'
+    })
+    await ctx.send(embed=embed)
 
 bot.run(SETTINGS['token'])
