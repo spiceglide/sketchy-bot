@@ -5,6 +5,8 @@ import handlers
 from music import Music
 from sqlite_context_manager import db
 
+from admin import Admin
+
 import json
 import logging
 import os
@@ -15,10 +17,11 @@ import sqlite3
 import discord
 from discord.ext import commands
 
-logging.basicConfig(filename='log.txt', level=logging.INFO)
 SETTINGS = common.read_json('config.json')
-common.setup_db(SETTINGS['paths']['database'])
 AUTOROLES = common.read_json(SETTINGS['paths']['autoroles'])['autoroles']
+
+logging.basicConfig(filename='log.txt', level=logging.INFO)
+common.setup_db(SETTINGS['paths']['database'])
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -144,69 +147,6 @@ async def on_raw_reaction_remove(payload):
     logging.info(f'Role {role} removed from member {member}')
 
 @bot.command()
-@commands.has_permissions(ban_members=True)
-async def ban(ctx, member: discord.Member, *reason):
-    reason = ' '.join(reason)
-    embed = common.create_embed({
-        'title': 'Ban',
-        'description': f'{member.name} has been banned.',
-        'Reason': reason,
-    })
-
-    await common.send_dm_embed(embed, member)
-    await ctx.send(embed=embed)
-    await member.ban(reason=reason)
-    logging.info(f'Member {member} banned')
-
-@bot.command()
-@commands.has_permissions(kick_members=True)
-async def kick(ctx, member: discord.Member, *reason):
-    reason = ' '.join(reason)
-    embed = common.create_embed({
-        'title': 'Kick',
-        'description': f'{member.name} has been kicked.',
-        'Reason': reason,
-    })
-
-    await common.send_dm_embed(embed, member)
-    await ctx.send(embed=embed)
-    await member.kick(reason=reason)
-    logging.info(f'Member {member} kicked')
-
-@bot.command()
-@commands.has_permissions(manage_messages=True)
-async def mute(ctx, member: discord.Member):
-    await ctx.send('Sorry! Muting is not implemented yet')
-
-@bot.command()
-@commands.has_permissions(kick_members=True)
-async def warn(ctx, member: discord.Member, *reason):
-    reason = ' '.join(reason)
-    embed = common.create_embed({
-        'title': 'Warning',
-        'description': f'{member.name} has been warned.',
-        'Reason': reason,
-    })
-
-    await common.send_dm_embed(embed, member)
-    await ctx.send(embed=embed)
-    logging.info(f'Member {member} warned')
-
-@bot.command()
-@commands.has_permissions(manage_roles=True)
-async def approve(ctx, member: discord.Member):
-    verified_role = ctx.guild.get_role(SETTINGS['roles']['verified'])
-    notify_role = ctx.guild.get_role(SETTINGS['roles']['sometimes_ping'])
-
-    if member.bot:
-        await member.add_roles(bot_role)
-    else:
-        await member.add_roles(verified_role, notify_role)
-
-    await ctx.message.add_reaction('👍')
-    logging.info(f'Member {member} approved')
-
-@bot.command()
 async def role(ctx, color, *name):
     name = ' '.join(name)
     color = common.hex_to_color(color)
@@ -266,22 +206,6 @@ async def report(ctx, *message):
     await channel.send(embed=embed)
     await ctx.message.add_reaction('👍')
     logging.info('Report handled')
-
-@bot.command()
-@commands.has_permissions(manage_messages=True)
-async def puppet(ctx, channel, *message):
-    message = ' '.join(message)
-    guild = bot.get_guild(SETTINGS['guild'])
-
-    if channel.isdigit():
-        channel = guild.get_channel(int(channel))
-    else:
-        channel = channel.lstrip('#')
-        channel = [chnl for chnl in guild.text_channels if chnl.name == channel][0]
-
-    await channel.send(message)
-    await ctx.message.add_reaction('👍')
-    logging.info('Puppetting handled')
 
 @bot.command(aliases=['connect', 'c'])
 async def join(ctx):
@@ -512,4 +436,5 @@ async def clear(ctx):
     })
     await ctx.send(embed=embed)
 
+bot.add_cog(Admin(bot, SETTINGS))
 bot.run(SETTINGS['token'])
