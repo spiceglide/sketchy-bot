@@ -94,6 +94,7 @@ def import_settings():
         "guild": int(os.getenv('SKETCHY_GUILD')),
         "database_path": os.getenv('SKETCHY_DATABASE_PATH'),
         "autoroles_path": os.getenv('SKETCHY_AUTOROLES_PATH'),
+        "music_path": os.getenv('SKETCHY_MUSIC_PATH'),
         "prefix": os.getenv('SKETCHY_PREFIX'),
         "setup_autoroles": int(os.getenv('SKETCHY_SETUP_AUTOROLES')),
         "games_channel": int(os.getenv('SKETCHY_GAMES_CHANNEL')),

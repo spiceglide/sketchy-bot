@@ -2,6 +2,7 @@
 
 import extra
 import handlers
+from music import Music
 from sqlite_context_manager import db
 
 import json
@@ -26,6 +27,7 @@ intents.presences = True
 intents.reactions = True
 
 bot = commands.Bot(command_prefix=SETTINGS['prefix'], intents=intents)
+music = Music(SETTINGS['music_path'])
 
 @bot.event
 async def on_ready():
@@ -249,5 +251,61 @@ async def role(ctx, color, *name):
     await ctx.send(embed=embed)
 
     logging.info(f'Role for member {ctx.author} updated')
+
+@bot.command()
+async def join(ctx):
+    if ctx.message.author.voice:
+        channel = ctx.message.author.voice.channel
+        await channel.connect()
+    else:
+        await ctx.send("What do you want me to join?")
+
+@bot.command()
+async def leave(ctx):
+    client = ctx.message.guild.voice_client
+    if client.is_connected():
+        await client.disconnect()
+    else:
+        await ctx.send("What do you want me to leave?")
+
+@bot.command()
+async def play(ctx, *link):
+    link = ' '.join(link)
+
+    client = ctx.message.guild.voice_client
+    if not client.is_playing():
+        audio = music.get_music(link)
+        client.play(audio, after=None)
+        await ctx.send("Okay, playing")
+    else:
+        await ctx.send("I'm already playing something")
+
+@bot.command()
+async def stop(ctx):
+    client = ctx.message.guild.voice_client
+    if client.is_playing():
+        client.stop()
+        await ctx.send("Okay, stopped")
+    else:
+        await ctx.send("There's nothing to stop")
+
+
+@bot.command()
+async def pause(ctx):
+    client = ctx.message.guild.voice_client
+    if client.is_playing():
+        client.pause()
+        await ctx.send("Okay, paused")
+    else:
+        await ctx.send("There's nothing to pause")
+
+@bot.command()
+async def resume(ctx):
+    client = ctx.message.guild.voice_client
+    if not client.is_playing():
+        client.resume()
+        await ctx.send("Okay, resumed")
+    else:
+        await ctx.send("There's nothing to resume")
 
 bot.run(SETTINGS['token'])
