@@ -14,15 +14,9 @@ class Music(commands.Cog):
     def __init__(self, bot, settings):
         self.bot = bot
         self.settings = settings
-
         self.path = settings['paths']['music']
-        self.queue = []
-        self.loop = False
-        self.loop_queue = False
-        self.shuffle = False
-        self.skipping = False
-        self.nightcore = False
-        self.bass_boosted = False
+
+        self.refresh()
 
         self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
         self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{self.path}/%(id)s', 'quiet': True}
