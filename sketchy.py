@@ -147,6 +147,6 @@ async def approve(ctx, member: discord.Member):
 
     await member.remove_roles(unverified_role)
     await member.add_roles(notify_role)
-    await ctx.add_reaction('👍')
+    await ctx.message.add_reaction('👍')
 
 bot.run(TOKEN)
