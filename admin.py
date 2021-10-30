@@ -15,6 +15,7 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, *reason):
+        """Bans a member."""
         reason = ' '.join(reason)
         embed = common.create_embed({
             'title': 'Ban',
@@ -30,6 +31,7 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, *reason):
+        """Kicks a member."""
         reason = ' '.join(reason)
         embed = common.create_embed({
             'title': 'Kick',
@@ -45,11 +47,13 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     async def mute(self, ctx, member: discord.Member):
+        """Mutes a member."""
         await ctx.send('Sorry! Muting is not implemented yet')
 
     @commands.command()
     @commands.has_permissions(kick_members=True)
     async def warn(self, ctx, member: discord.Member, *reason):
+        """Warns a member."""
         reason = ' '.join(reason)
         embed = common.create_embed({
             'title': 'Warning',
@@ -64,6 +68,7 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_roles=True)
     async def approve(self, ctx, member: discord.Member):
+        """Approves a member to enter the server."""
         verified_role = ctx.guild.get_role(self.settings['roles']['verified'])
         notify_role = ctx.guild.get_role(self.settings['roles']['sometimes_ping'])
 
@@ -75,9 +80,9 @@ class Admin(commands.Cog):
         await ctx.message.add_reaction('👍')
         logging.info(f'Member {member} approved')
 
-    #@commands.has_permissions(manage_messages=True)
-    @commands.command()
+    @commands.has_permissions(manage_roles=True)
     async def puppet(self, ctx, channel, *message):
+        """Put words in Sketchy's mouth."""
         message = ' '.join(message)
         guild = self.bot.get_guild(self.settings['guild'])
 

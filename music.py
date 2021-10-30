@@ -32,6 +32,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['connect', 'c'])
     async def join(self, ctx):
+        """Connects to a voice channel."""
         if ctx.message.author.voice:
             channel = ctx.message.author.voice.channel
             await channel.connect()
@@ -41,6 +42,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['disconnect', 'dc'])
     async def leave(self, ctx):
+        """Disconnects from a voice channel."""
         client = ctx.message.guild.voice_client
         if client.is_connected():
             await client.disconnect()
@@ -51,6 +53,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['p'])
     async def play(self, ctx, *link):
+        """Adds a specified song to the queue."""
         link = ' '.join(link)
         client = ctx.message.guild.voice_client
 
@@ -85,6 +88,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def pause(self, ctx):
+        """Pauses the current song."""
         client = ctx.message.guild.voice_client
         if client.is_playing():
             client.pause()
@@ -97,6 +101,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['unpause'])
     async def resume(self, ctx):
+        """Resumes a paused song."""
         client = ctx.message.guild.voice_client
         if not client.is_playing():
             client.resume()
@@ -109,6 +114,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['q'])
     async def queue(self, ctx):
+        """Shows a list of queued songs."""
         queue = self.queue
         embed = discord.Embed(title='Queue', description='')
 
@@ -134,12 +140,14 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['nowplaying', 'np'])
     async def now_playing(self, ctx):
+        """Shows the current track."""
         song = self.queue[0]
         embed = common.create_embed({'title': 'Now playing', 'description': f'[{song["title"]}]({song["webpage_url"]})'})
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['l'])
     async def loop(self, ctx):
+        """Loops the current track."""
         async with ctx.channel.typing():
             self.loop = not self.loop
             self.loop_queue = False
@@ -155,6 +163,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['loopqueue', 'loopq', 'lq'])
     async def loop_queue(self, ctx):
+        """Loops the queued songs."""
         async with ctx.channel.typing():
             self.loop_queue = not self.loop_queue
             self.loop = False
@@ -169,6 +178,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def shuffle(self, ctx):
+        """Plays the queued songs in order."""
         self.shuffle = not self.shuffle
         self.loop = False
         self.loop_queue = False
@@ -182,6 +192,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['nc', 'weeb'])
     async def nightcore(self, ctx):
+        """Enables nightcore mode."""
         self.nightcore = not self.nightcore
         self.bass_boosted = False
 
@@ -194,6 +205,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['bassboost', 'bass_boosted', 'bassboosted', 'bass'])
     async def bass_boost(self, ctx):
+        """Enabled bass-boosted mode."""
         self.bass_boosted = not self.bass_boosted
         self.nightcore = False
 
@@ -206,6 +218,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['s'])
     async def skip(self, ctx):
+        """Skips the current song."""
         song = self.queue[0]
         self.skipping = True
 
@@ -222,6 +235,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['j'])
     async def jump(self, ctx, number):
+        """Skips straight to a specified song."""
         self.skipping = True
 
         async with ctx.channel.typing():
@@ -239,6 +253,7 @@ class Music(commands.Cog):
 
     @commands.command(aliases=['rm', 'x'])
     async def remove(self, ctx, number):
+        """Removes a specified song from the queue."""
         song = self.queue.pop(int(number))
         embed = common.create_embed({
             'title': 'Queue',
@@ -248,6 +263,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def clear(self, ctx):
+        """Removes all songs from the queue."""
         async with ctx.channel.typing():
             client = ctx.message.guild.voice_client
             client.stop()

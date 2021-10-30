@@ -16,6 +16,7 @@ class Regular(commands.Cog):
 
     @commands.command()
     async def role(self, ctx, color, *name):
+        """Set the name and colour of your own role."""
         name = ' '.join(name)
         color = common.hex_to_color(color)
 
@@ -58,6 +59,7 @@ class Regular(commands.Cog):
 
     @commands.command()
     async def suggest(self, ctx, *message):
+        """Anonymously post a suggestion."""
         message = ' '.join(message)
         channel = self.bot.get_channel(self.settings['channels']['suggestions'])
 
@@ -67,6 +69,7 @@ class Regular(commands.Cog):
 
     @commands.command()
     async def report(self, ctx, *message):
+        """Anonymously report a member."""
         message = ' '.join(message)
         channel = self.bot.get_channel(self.settings['channels']['reports'])
         embed = discord.Embed(title='Report', description=message)
