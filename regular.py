@@ -1,4 +1,5 @@
 import common
+import handlers
 from sqlite_context_manager import db
 
 import logging
@@ -13,6 +14,43 @@ class Regular(commands.Cog):
     def __init__(self, bot, settings):
         self.bot = bot
         self.settings = settings
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        if member.bot:
+            return
+
+        # A welcoming message
+        embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
+        await common.send_dm_embed(embed, member)
+
+        common.add_member_db(member, self.settings['paths']['database'])
+        logging.info(f'Member {member} joined')
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        # Game notifications
+        if message.channel == self.bot.get_channel(self.settings['channels']['games']):
+            await handlers.handle_notifications(
+                message,
+                sometimes_role=self.settings['roles']['sometimes_ping'],
+                always_role=self.settings['roles']['always_ping'],
+                channel_role=self.settings['roles']['channel_ping'],
+                pings_channel=self.settings['channels']['pings'],
+            )
+            logging.info('Notification handled')
+        # Suggestions
+        elif message.channel == self.bot.get_channel(self.settings['channels']['suggestions']):
+            await handlers.handle_suggestions(message)
+            logging.info('Suggestion handled')
+            return
+        # Mentions
+        elif self.bot.user.mentioned_in(message):
+            await handlers.handle_mentions(message)
+            logging.info('Mention handled')
+
+        # Process any commands
+        await self.bot.process_commands(message)
 
     @commands.command()
     async def role(self, ctx, color, *name):
