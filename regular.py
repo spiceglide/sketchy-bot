@@ -59,7 +59,9 @@ class Regular(commands.Cog):
         color = common.hex_to_color(color)
 
         with database.db(self.settings['paths']['database']) as cursor:
-            role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
+            query = common.read_file('queries/select-member.sql')
+            role_assigned = cursor.execute(query, (ctx.author.id,)).fetchone()
+
             # If no assigned role, create a new one
             if role_assigned[0] == None:
                 role = await ctx.guild.create_role(name=name, color=color)
@@ -73,8 +75,12 @@ class Regular(commands.Cog):
 
                 # Add to user and database
                 await ctx.author.add_roles(role)
-                cursor.execute('INSERT INTO roles(id) VALUES(?)', (role.id,))
-                cursor.execute('UPDATE members SET role = ? WHERE id = ?', (role.id, ctx.author.id))
+
+                query = common.read_file('queries/add-role.sql')
+                cursor.execute(query, (role.id,))
+
+                query = common.read_file('queries/set-role.sql')
+                cursor.execute(query, (role.id, ctx.author.id))
             else:
                 role = ctx.guild.get_role(role_assigned[0])
                 old_role = copy(role)

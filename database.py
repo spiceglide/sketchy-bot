@@ -36,7 +36,7 @@ def update_members(members, db_path):
     """Update 'members' database table from a list of members."""
     with db(db_path) as cursor:
         for member in members:
-            query = common.read_file('queries/member-exists.sql')
+            query = common.read_file('queries/exists-member.sql')
             member_exists = cursor.execute(query, (member.id,)).fetchone()
             if member_exists[0] == 0:
                 query = common.read_file('queries/add-member.sql')
@@ -46,4 +46,5 @@ def update_members(members, db_path):
 def add_member(member, db_path):
     """Add a new member to the database."""
     with db(db_path) as cursor:
-        cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
+        query = common.read_file('queries/add-member.sql')
+        cursor.execute(query, (member.id,))

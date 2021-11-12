@@ -17,10 +17,14 @@ class Roles(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
         with database.db(self.settings['paths']['database']) as cursor:
-            role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
+            query = common.read_file('queries/exists-role.sql')
+            role_is_relevant = cursor.execute(query, (role.id,)).fetchone()
             if role_is_relevant[0] != 0:
-                cursor.execute('DELETE FROM roles WHERE id = ?', (role.id,))
-                cursor.execute('UPDATE members SET role = NULL WHERE role = ?', (role.id,))
+                query = common.read_file('queries/delete-role.sql')
+                cursor.execute(query, (role.id,))
+
+                query = common.read_file('queries/null-role.sql')
+                cursor.execute(query, (role.id,))
         logging.info(f'Role {role} deleted')
 
     @commands.Cog.listener()
