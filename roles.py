@@ -1,5 +1,5 @@
 import common
-from sqlite_context_manager import db
+from database import db
 
 import logging
 
@@ -16,7 +16,7 @@ class Roles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
-        with db(self.settings['paths']['database']) as cursor:
+        with database.db(self.settings['paths']['database']) as cursor:
             role_is_relevant = cursor.execute('SELECT EXISTS(SELECT id FROM roles WHERE id = ?)', (role.id,)).fetchone()
             if role_is_relevant[0] != 0:
                 cursor.execute('DELETE FROM roles WHERE id = ?', (role.id,))

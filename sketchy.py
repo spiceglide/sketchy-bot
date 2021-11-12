@@ -2,7 +2,7 @@
 
 import common
 import handlers
-from sqlite_context_manager import db
+import database
 
 from admin import Admin
 from regular import Regular
@@ -23,7 +23,7 @@ SETTINGS = common.read_json('config.json')
 AUTOROLES = common.read_json(SETTINGS['paths']['autoroles'])['autoroles']
 
 logging.basicConfig(filename='log.txt', level=logging.INFO)
-common.setup_db(SETTINGS['paths']['database'])
+database.setup(SETTINGS['paths']['database'])
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -49,9 +49,6 @@ async def on_ready():
         activity=discord.Activity(type=discord.ActivityType.watching, name='the stars'),
     )
 
-    members = bot.get_all_members()
-    common.update_members_db(members, SETTINGS['paths']['database'])
-
     # Create auto-role messages
     if SETTINGS['setup']['autoroles']:
         for autorole in AUTOROLES:
@@ -72,6 +69,9 @@ async def on_ready():
         logging.info('Auto-roles set up!')
         logging.info('Please set the message IDs in the autoroles.json file and disable the SKETCHY_SETUP_AUTOROLES flag before restarting')
         exit()
+
+    members = bot.get_all_members()
+    database.update_members(members, SETTINGS['paths']['database'])
 
 bot.add_cog(Admin(bot, SETTINGS))
 bot.add_cog(Regular(bot, SETTINGS))

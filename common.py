@@ -1,4 +1,4 @@
-from sqlite_context_manager import db
+from database import db
 
 import functools
 import json
@@ -8,19 +8,6 @@ import re
 
 import discord
 import sqlite3
-
-def setup_db(path):
-    """Sets up a database if it doesn't already exist."""
-    if not os.path.exists(path):
-        with db(path) as cursor:
-            cursor.execute('PRAGMA foreign_keys=ON')
-            cursor.execute('''CREATE TABLE roles
-                            (id INTEGER PRIMARY KEY)''')
-            cursor.execute('''CREATE TABLE members
-                            (id INTEGER PRIMARY KEY,
-                            role INTEGER,
-                            FOREIGN KEY(role) REFERENCES roles(id) ON DELETE SET NULL)''')
-            logging.info('Set up database!')
 
 def read_json(path):
     """Read JSON from a file into a Python object."""
@@ -32,20 +19,6 @@ async def run_blocking(blocking_func, bot, *args, **kwargs):
     """Runs a blocking function in a non-blocking way."""
     func = functools.partial(blocking_func, *args, **kwargs)
     return await bot.loop.run_in_executor(None, func)
-
-def update_members_db(members, db_path):
-    """Update 'members' database table from a list of members."""
-    with db(db_path) as cursor:
-        for member in members:
-            member_exists = cursor.execute('SELECT EXISTS(SELECT id FROM members WHERE id = ?)', (member.id,)).fetchone()
-            if member_exists[0] == 0:
-                cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
-        logging.info('Database updated!')
-
-def add_member_db(member, db_path):
-    """Add a new member to the database."""
-    with db(db_path) as cursor:
-        cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
 
 def has_url(text):
     """Checks whether a piece of text contains a URL."""

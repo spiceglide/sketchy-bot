@@ -1,6 +1,6 @@
 import common
 import handlers
-from sqlite_context_manager import db
+import database
 
 import logging
 from copy import copy
@@ -24,7 +24,7 @@ class Regular(commands.Cog):
         embed = discord.Embed(title='Welcome to Sketchspace!', description='A community for playing art games')
         await common.send_dm_embed(embed, member)
 
-        common.add_member_db(member, self.settings['paths']['database'])
+        database.add_member(member, self.settings['paths']['database'])
         logging.info(f'Member {member} joined')
 
     @commands.Cog.listener()
@@ -58,7 +58,7 @@ class Regular(commands.Cog):
         name = ' '.join(name)
         color = common.hex_to_color(color)
 
-        with db(self.settings['paths']['database']) as cursor:
+        with database.db(self.settings['paths']['database']) as cursor:
             role_assigned = cursor.execute('SELECT role FROM members WHERE id = ?', (ctx.author.id,)).fetchone()
             # If no assigned role, create a new one
             if role_assigned[0] == None:
