@@ -1,0 +1,3 @@
+CREATE TABLE roles (
+	id INTEGER PRIMARY KEY
+)

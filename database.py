@@ -18,13 +18,17 @@ def setup(path):
     """Sets up a database if it doesn't already exist."""
     if not os.path.exists(path):
         with db(path) as cursor:
-            cursor.execute('PRAGMA foreign_keys=ON')
-            cursor.execute('''CREATE TABLE roles
-                            (id INTEGER PRIMARY KEY)''')
-            cursor.execute('''CREATE TABLE members
-                            (id INTEGER PRIMARY KEY,
-                            role INTEGER,
-                            FOREIGN KEY(role) REFERENCES roles(id) ON DELETE SET NULL)''')
+            query_list = [
+                'queries/init.sql',
+                'queries/create-table-roles.sql',
+                'queries/create-table-members.sql',
+            ]
+
+            for query_path in query_list:
+                with file(query_path, 'r') as query_file:
+                    query = query_file.read()
+                cursor.execute(query)
+
             logging.info('Set up database!')
 
 def update_members(members, db_path):
