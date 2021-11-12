@@ -20,6 +20,10 @@ async def run_blocking(blocking_func, bot, *args, **kwargs):
     func = functools.partial(blocking_func, *args, **kwargs)
     return await bot.loop.run_in_executor(None, func)
 
+def read_file(path):
+    with open(path, 'r') as file:
+        return file.read()
+
 def has_url(text):
     """Checks whether a piece of text contains a URL."""
     link_expression = re.compile(r'https?://[a-z0-9\.]+\.[a-z0-9]')

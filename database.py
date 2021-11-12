@@ -1,3 +1,5 @@
+import common
+
 import logging
 import os
 
@@ -25,8 +27,7 @@ def setup(path):
             ]
 
             for query_path in query_list:
-                with file(query_path, 'r') as query_file:
-                    query = query_file.read()
+                query = common.read_file(query_path)
                 cursor.execute(query)
 
             logging.info('Set up database!')
@@ -35,9 +36,11 @@ def update_members(members, db_path):
     """Update 'members' database table from a list of members."""
     with db(db_path) as cursor:
         for member in members:
-            member_exists = cursor.execute('SELECT EXISTS(SELECT id FROM members WHERE id = ?)', (member.id,)).fetchone()
+            query = common.read_file('queries/member-exists.sql')
+            member_exists = cursor.execute(query, (member.id,)).fetchone()
             if member_exists[0] == 0:
-                cursor.execute('INSERT INTO members(id) VALUES(?)', (member.id,))
+                query = common.read_file('queries/add-member.sql')
+                cursor.execute(query, (member.id,))
         logging.info('Database updated!')
 
 def add_member(member, db_path):
