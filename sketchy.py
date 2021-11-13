@@ -74,7 +74,7 @@ async def on_ready():
     members = bot.get_all_members()
     database.update_members(members, SETTINGS['paths']['database'])
 
-    await Reminders.poll(SETTINGS)
+    await Reminders.poll(bot, SETTINGS)
 
 bot.add_cog(Admin(bot, SETTINGS))
 bot.add_cog(Regular(bot, SETTINGS))

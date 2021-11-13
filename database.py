@@ -58,3 +58,18 @@ def add_reminder(title, member, time, db_path):
     with db(db_path) as cursor:
         query = common.read_file('queries/add-reminder.sql')
         cursor.execute(query, (title, member, time))
+
+def get_reminders(limit_time, db_path):
+    """Get all the reminders before a specified time."""
+    limit_time = int(limit_time.timestamp())
+
+    with db(db_path) as cursor:
+        query = common.read_file('queries/select-reminders.sql')
+        cursor.execute(query, (limit_time,))
+        return cursor.fetchall()
+
+def delete_reminders(limit_time, db_path):
+    """Delete reminders before a specified time."""
+    with db(db_path) as cursor:
+        query = common.read_file('queries/delete-reminders.sql')
+        cursor.execute(query, (limit_time,))
