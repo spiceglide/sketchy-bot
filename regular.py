@@ -49,9 +49,6 @@ class Regular(commands.Cog):
             await handlers.handle_mentions(message)
             logging.info('Mention handled')
 
-        # Process any commands
-        await self.bot.process_commands(message)
-
     @commands.command()
     async def role(self, ctx, color, *name):
         """Set the name and colour of your own role."""
