@@ -33,14 +33,12 @@ def has_url(text):
 
 def extract_time(current_time, text):
     """Attempt to extract a relative point in time from a string."""
-    matches = re.match(r'^(\d+)([smhdwy])$', text)
+    matches = re.match(r'^(\d+)([mhdwy])$', text)
     duration = int(matches.group(1))
     unit = matches.group(2)
 
     new_time = current_time
-    if unit == 's':
-        new_time +=  timedelta(seconds=duration)
-    elif unit == 'm':
+    if unit == 'm':
         new_time += timedelta(minutes=duration)
     elif unit == 'd':
         new_time += timedelta(days=duration)
@@ -85,7 +83,6 @@ def create_embed(options, inline=True, color=None):
         embed.add_field(name=name, value=value, inline=inline)
 
     return embed
-
 
 async def send_dm_embed(embed, recipient):
     """Send an embed to a member."""
