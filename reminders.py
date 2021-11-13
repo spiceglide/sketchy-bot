@@ -26,10 +26,13 @@ class Reminders(commands.Cog):
     @commands.command()
     async def remind(self, ctx, time, *title):
         """Set a reminder."""
-        # TODO
-        pass
+        title = ' '.join(title)
+        member = ctx.author
+
+        time = common.extract_time(datetime.now(), time)
 
     @commands.command()
     async def birthday(self, ctx):
+        """Set your birthday to get automatic wishes."""
         # TODO
         pass

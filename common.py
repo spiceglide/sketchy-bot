@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+from datetime import timedelta
 
 import discord
 import sqlite3
@@ -29,6 +30,24 @@ def has_url(text):
     link_expression = re.compile(r'https?://[a-z0-9\.]+\.[a-z0-9]')
     contains_link = link_expression.search(text.lower()) != None
     return contains_link
+
+def extract_time(current_time, text):
+    """Attempt to extract a relative point in time from a string."""
+    matches = re.match(r'^(\d+)([smhdy])$', text)
+    duration = int(matches.group(1))
+    unit = matches.group(2)
+
+    if unit == 's':
+        delta =  timedelta(seconds=duration)
+    elif unit == 'm':
+        delta = timedelta(minutes=duration)
+    elif unit == 'd':
+        delta = timedelta(days=duration)
+    elif unit == 'y':
+        delta = timedelta(years=duration)
+
+    new_time = current_time + delta
+    return new_time
 
 def compare_roles(old_role, new_role):
     """Compare name and color of two roles and return a dictionary of strings showing the changes."""
