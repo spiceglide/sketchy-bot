@@ -39,10 +39,8 @@ async def on_ready():
     guild = bot.get_guild(SETTINGS['guild'])
     logging.info(
         'Connection established\n'
-        f'User name:  {bot.user.name}\n'
-        f'User ID:    {bot.user.id}\n'
-        f'Guild name: {guild.name}\n'
-        f'Guild ID:   {guild.id}\n'
+        f'User:  {bot.user.name} ({bot.user.id})\n'
+        f'Guild: {guild.name} ({guild.id})\n'
     )
 
     await bot.change_presence(
