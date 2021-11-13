@@ -52,6 +52,9 @@ def add_member(member, db_path):
 
 def add_reminder(title, member, time, db_path):
     """Add a new reminder to the database."""
+    member = member.id
+    time = int(time.timestamp())
+
     with db(db_path) as cursor:
         query = common.read_file('queries/add-reminder.sql')
         cursor.execute(query, (title, member, time))

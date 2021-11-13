@@ -33,20 +33,22 @@ def has_url(text):
 
 def extract_time(current_time, text):
     """Attempt to extract a relative point in time from a string."""
-    matches = re.match(r'^(\d+)([smhdy])$', text)
+    matches = re.match(r'^(\d+)([smhdwy])$', text)
     duration = int(matches.group(1))
     unit = matches.group(2)
 
+    new_time = current_time
     if unit == 's':
-        delta =  timedelta(seconds=duration)
+        new_time +=  timedelta(seconds=duration)
     elif unit == 'm':
-        delta = timedelta(minutes=duration)
+        new_time += timedelta(minutes=duration)
     elif unit == 'd':
-        delta = timedelta(days=duration)
+        new_time += timedelta(days=duration)
+    elif unit == 'w':
+        new_time += timedelta(weeks=duration)
     elif unit == 'y':
-        delta = timedelta(years=duration)
+        new_time += timedelta(days=duration*365)
 
-    new_time = current_time + delta
     return new_time
 
 def compare_roles(old_role, new_role):

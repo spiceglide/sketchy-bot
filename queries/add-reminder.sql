@@ -1,1 +1,1 @@
-INSERT INTO reminders(id, title, member, time) VALUES(?, ?, ?, ?)
+INSERT INTO reminders(title, member, time) VALUES(?, ?, ?)
