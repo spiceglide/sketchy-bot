@@ -24,6 +24,7 @@ def setup(path):
                 'queries/init.sql',
                 'queries/create-table-roles.sql',
                 'queries/create-table-members.sql',
+                'queries/create-table-reminders.sql',
             ]
 
             for query_path in query_list:
@@ -48,3 +49,9 @@ def add_member(member, db_path):
     with db(db_path) as cursor:
         query = common.read_file('queries/add-member.sql')
         cursor.execute(query, (member.id,))
+
+def add_reminder(title, member, time, db_path):
+    """Add a new reminder to the database."""
+    with db(db_path) as cursor:
+        query = common.read_file('queries/add-reminder.sql')
+        cursor.execute(query, (title, member, time))

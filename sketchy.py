@@ -6,6 +6,7 @@ import database
 
 from admin import Admin
 from regular import Regular
+from reminders import Reminders
 from roles import Roles
 from music import Music
 
@@ -73,8 +74,11 @@ async def on_ready():
     members = bot.get_all_members()
     database.update_members(members, SETTINGS['paths']['database'])
 
+    await Reminders.poll(SETTINGS)
+
 bot.add_cog(Admin(bot, SETTINGS))
 bot.add_cog(Regular(bot, SETTINGS))
+bot.add_cog(Reminders(bot, SETTINGS))
 bot.add_cog(Roles(bot, SETTINGS))
 bot.add_cog(Music(bot, SETTINGS))
 bot.run(SETTINGS['token'])

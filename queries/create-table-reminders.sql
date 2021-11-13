@@ -1,5 +1,7 @@
 CREATE TABLE reminders (
 	id INTEGER PRIMARY KEY,
-	member INTEGER,
+	title TEXT,
+	member INTEGER NOT NULL,
+	time INTEGER NOT NULL,
 	FOREIGN KEY(member) REFERENCES members(id)
 )
