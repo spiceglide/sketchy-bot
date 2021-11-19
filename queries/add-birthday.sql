@@ -1,0 +1,1 @@
+INSERT INTO birthdays(id, date) VALUES(?, ?)

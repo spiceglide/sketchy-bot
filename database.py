@@ -25,6 +25,7 @@ def setup(path):
                 'queries/create-table-roles.sql',
                 'queries/create-table-members.sql',
                 'queries/create-table-reminders.sql',
+                'queries/create-table-birthdays.sql',
             ]
 
             for query_path in query_list:
@@ -73,3 +74,27 @@ def delete_reminders(limit_time, db_path):
     with db(db_path) as cursor:
         query = common.read_file('queries/delete-reminders.sql')
         cursor.execute(query, (limit_time,))
+
+def get_birthdays(date, db_path):
+    """Get all the birthdays for a certain day."""
+    date = date.strftime('%Y-%m-%d')
+
+    with db(db_path) as cursor:
+        query = common.read_file('queries/select-birthdays.sql')
+        cursor.execute(query, (date,))
+        return cursor.fetchall()
+
+def add_birthday(member, date, db_path):
+    """Add or change a member's recorded birthday."""
+    date = date.strftime('%Y-%m-%d')
+
+    with db(db_path) as cursor:
+        query = common.read_file('queries/exists-birthday.sql')
+        exists = cursor.execute(query, (member.id,)).fetchone()[0]
+
+        if exists == 0:
+            query = common.read_file('queries/add-birthday.sql')
+            cursor.execute(query, (member.id, date))
+        else:
+            query = common.read_file('queries/update-birthday.sql')
+            cursor.execute(query, (date, member.id))
