@@ -34,11 +34,10 @@ class Reminders(commands.Cog):
                         title = reminder[0]
                         member = bot.get_user(reminder[1])
 
-                        embed = common.create_embed({
+                        await channel.send(embed=common.create_embed({
                             'title': 'Reminder',
                             'description': title,
-                        })
-                        await common.send_dm_embed(embed, member)
+                        }))
 
                         logging.info("Sent reminder!")
                     
