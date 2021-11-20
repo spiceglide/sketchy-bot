@@ -71,7 +71,7 @@ class Reminders(commands.Cog):
 
             await asyncio.sleep(INTERVAL)
 
-    @commands.command(aliases=['reminder': 'remindme'])
+    @commands.command(aliases=['reminder', 'remindme'])
     async def remind(self, ctx, time, *title):
         """Set a reminder."""
         title = ' '.join(title)
