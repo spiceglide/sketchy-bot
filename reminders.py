@@ -87,9 +87,16 @@ class Reminders(commands.Cog):
     @commands.command(aliases=['bday', 'bd'])
     async def birthday(self, ctx, date):
         """Set your birthday to get automatic wishes."""
-        date = datetime.strptime(date, '%Y-%m-%d')
         member = ctx.author
         
+        # YYYY-MM-DD
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d')
+        # MM-DD
+        except:
+            date = f'0000-{date}'
+            date = datetime.strptime(date, f'%m-%d')
+
         db_path = self.settings['paths']['database']
         database.add_birthday(member, date, db_path)
 
