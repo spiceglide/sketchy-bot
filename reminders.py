@@ -50,8 +50,7 @@ class Reminders(commands.Cog):
             try:
                 if now.day != soon.day:
                     # Every day is Sammy day
-                    sammy = bot.get_user(439512171836211230)  # temp
-                    #sammy = bot.get_user(331886521647104002)
+                    sammy = bot.get_user(331886521647104002)
                     await channel.send(embed=common.create_embed({
                         'title': 'Birthday',
                         'description': f'Happy birthday, {sammy.mention}!',
