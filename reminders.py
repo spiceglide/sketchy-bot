@@ -20,6 +20,7 @@ class Reminders(commands.Cog):
     async def poll(bot, settings):
         INTERVAL = 60
         db_path = settings['paths']['database']
+        channel = bot.get_channel(settings['channels']['reminders'])
 
         while True:
             now = datetime.now(timezone.utc)
@@ -40,30 +41,32 @@ class Reminders(commands.Cog):
                         await common.send_dm_embed(embed, member)
                     
                     database.delete_reminders(soon, db_path)
+            except:
+                pass
 
             # Check for birthdays
             try:
-                if now.day != soon.day:
+                if now.minute != soon.minute:
                     birthdays = database.get_birthdays(soon, db_path)
 
                     # Every day is Sammy day
                     sammy = bot.get_user(439512171836211230)  # temp
                     #sammy = bot.get_user(331886521647104002)
-                    embed = common.create_embed({
+                    await channel.send(embed=common.create_embed({
                         'title': 'Birthday',
                         'description': f'Happy birthday, {sammy.mention}!',
-                    })
-                    await common.send_dm_embed(embed, sammy)
+                    }))
 
                     if birthdays:
                         for birthday in birthdays:
                             member = bot.get_user(birthday[0])
 
-                        embed = common.create_embed({
+                        await channel.send(embed=common.create_embed({
                             'title': 'Birthday',
                             'description': f'Happy birthday, {member.mention}!',
-                        })
-                        await common.send_dm_embed(embed, member)
+                        }))
+            except:
+                pass
 
             await asyncio.sleep(INTERVAL)
 
