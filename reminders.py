@@ -81,6 +81,7 @@ class Reminders(commands.Cog):
         db_path = self.settings['paths']['database']
         database.add_reminder(title, member, time, db_path)
 
+        await ctx.message.add_reaction('👍')
         logging.info('Set reminder!')
 
     @commands.command(aliases=['bday', 'bd'])
@@ -99,4 +100,5 @@ class Reminders(commands.Cog):
         db_path = self.settings['paths']['database']
         database.add_birthday(member, date, db_path)
 
+        await ctx.message.add_reaction('👍')
         logging.info('Set birthday!')
