@@ -72,7 +72,7 @@ class Reminders(commands.Cog):
 
             await asyncio.sleep(INTERVAL)
 
-    @commands.command()
+    @commands.command(aliases=['reminder': 'remindme'])
     async def remind(self, ctx, time, *title):
         """Set a reminder."""
         title = ' '.join(title)
@@ -82,7 +82,7 @@ class Reminders(commands.Cog):
         db_path = self.settings['paths']['database']
         database.add_reminder(title, member, time, db_path)
 
-    @commands.command()
+    @commands.command(aliases=['bday', 'bd'])
     async def birthday(self, ctx, date):
         """Set your birthday to get automatic wishes."""
         date = datetime.strptime(date, '%Y-%m-%d')
