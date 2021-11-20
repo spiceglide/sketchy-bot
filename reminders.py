@@ -39,16 +39,16 @@ class Reminders(commands.Cog):
                             'description': title,
                         })
                         await common.send_dm_embed(embed, member)
+
+                        logging.info("Sent reminder!")
                     
                     database.delete_reminders(soon, db_path)
             except:
-                pass
+                logging.error("Failed to send reminder")
 
             # Check for birthdays
             try:
-                if now.minute != soon.minute:
-                    birthdays = database.get_birthdays(soon, db_path)
-
+                if now.day != soon.day:
                     # Every day is Sammy day
                     sammy = bot.get_user(439512171836211230)  # temp
                     #sammy = bot.get_user(331886521647104002)
@@ -57,16 +57,19 @@ class Reminders(commands.Cog):
                         'description': f'Happy birthday, {sammy.mention}!',
                     }))
 
+                    birthdays = database.get_birthdays(soon, db_path)
                     if birthdays:
                         for birthday in birthdays:
                             member = bot.get_user(birthday[0])
 
-                        await channel.send(embed=common.create_embed({
-                            'title': 'Birthday',
-                            'description': f'Happy birthday, {member.mention}!',
-                        }))
+                            await channel.send(embed=common.create_embed({
+                                'title': 'Birthday',
+                                'description': f'Happy birthday, {member.mention}!',
+                            }))
+                    
+                            logging.info("Sent birthday wishes!")
             except:
-                pass
+                logging.error("Failed to send birthday wishes")
 
             await asyncio.sleep(INTERVAL)
 
