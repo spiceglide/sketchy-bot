@@ -82,6 +82,8 @@ class Reminders(commands.Cog):
         db_path = self.settings['paths']['database']
         database.add_reminder(title, member, time, db_path)
 
+        logging.info('Set reminder!')
+
     @commands.command(aliases=['bday', 'bd'])
     async def birthday(self, ctx, date):
         """Set your birthday to get automatic wishes."""
@@ -90,3 +92,5 @@ class Reminders(commands.Cog):
         
         db_path = self.settings['paths']['database']
         database.add_birthday(member, date, db_path)
+
+        logging.info('Set birthday!')
