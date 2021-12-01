@@ -48,15 +48,9 @@ class Reminders(commands.Cog):
             # Check for birthdays
             try:
                 if now.day != soon.day:
-                    # Every day is Sammy day
-                    sammy = bot.get_user(331886521647104002)
-                    await channel.send(embed=common.create_embed({
-                        'title': 'Birthday',
-                        'description': f'Happy birthday, {sammy.mention}!',
-                    }))
-
                     birthdays = database.get_birthdays(soon, db_path)
                     if birthdays:
+
                         for birthday in birthdays:
                             member = bot.get_user(birthday[0])
 
