@@ -28,6 +28,7 @@ class Music(commands.Cog):
         self.shuffle = False
         self.skipping = False
         self.nightcore = False
+        self.vaporwave = False
         self.bass_boosted = False
 
     @commands.command(aliases=['connect', 'c'])
@@ -118,9 +119,11 @@ class Music(commands.Cog):
         queue = self.queue
         embed = discord.Embed(title='Queue', description='')
 
-        if self.nightcore or self.bass_boosted:
+        if self.nightcore or self.bass_boosted or self.vaporwave:
             if self.nightcore:
                 embed.description += '\n📻 Nightcore'
+            elif self.vaporwave:
+                embed.description += '\n📻 Vaporwave'
             elif self.bass_boosted:
                 embed.description += '\n📻 Bass boosted'
 
@@ -194,6 +197,7 @@ class Music(commands.Cog):
     async def nightcore(self, ctx):
         """Enables nightcore mode."""
         self.nightcore = not self.nightcore
+        self.vaporwave = False
         self.bass_boosted = False
 
         status = 'ON' if self.nightcore else 'OFF'
@@ -203,10 +207,25 @@ class Music(commands.Cog):
         })
         await ctx.send(embed=embed)
 
+    @commands.command(aliases=['vp', 'vapor'])
+    async def vaporwave(self, ctx):
+        """Enables vaporwave mode."""
+        self.vaporwave = not self.vaporwave
+        self.nightcore = False
+        self.bass_boosted = False
+
+        status = 'ON' if self.vaporwave else 'OFF'
+        embed = common.create_embed({
+            'title': 'Queue',
+            'description': f'Vaporwave {status}',
+        })
+        await ctx.send(embed=embed)
+
     @commands.command(aliases=['bassboost', 'bass_boosted', 'bassboosted', 'bass'])
     async def bass_boost(self, ctx):
         """Enabled bass-boosted mode."""
         self.bass_boosted = not self.bass_boosted
+        self.vaporwave = False
         self.nightcore = False
 
         status = 'ON' if self.bass_boosted else 'OFF'
@@ -313,6 +332,11 @@ class Music(commands.Cog):
                 filter = 'aformat=channel_layouts=stereo,asetrate=44100*4/3'
                 os.system(f'ffmpeg -i {song_path} -af "{filter}" -f webm -nostats -loglevel 0 {song_path}-nightcore')
             song_path += '-nightcore'
+        if self.vaporwave:
+            if not os.path.exists(f'{song_path}-vaporwave'):
+                filter = 'aformat=channel_layouts=stereo,asetrate=44100*3/4'
+                os.system(f'ffmpeg -i {song_path} -af "{filter}" -f webm -nostats -loglevel 0 {song_path}-vaporwave')
+            song_path += '-vaporwave'
         elif self.bass_boosted:
             if not os.path.exists(f'{song_path}-bass'):
                 filter = 'bass=g=12'
