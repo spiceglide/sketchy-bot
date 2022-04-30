@@ -1,9 +1,10 @@
 import common
 
+import asyncio
 import os
 import random
-import subprocess
 import logging
+from multiprocessing import Process
 
 import discord
 from discord.ext import commands
@@ -23,7 +24,7 @@ class Music(commands.Cog):
             'before_options': '',
             'options': '-reconnect_streamed 1 -reconnect_delay_max 5 -vn',
         }
-        self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{self.path}/%(id)s', 'no-part': True, 'quiet': True}
+        self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{self.path}/%(id)s', 'nopart': True, 'quiet': True}
 
     def refresh(self):
         self.queue = []
@@ -56,6 +57,8 @@ class Music(commands.Cog):
         else:
             await ctx.send('What do you want me to leave?')
 
+        self.__clear()
+
     @commands.command(aliases=['p'])
     async def play(self, ctx, *link):
         """Adds a specified song to the queue."""
@@ -79,7 +82,7 @@ class Music(commands.Cog):
                     client.play(audio, after=next)
 
         async with ctx.channel.typing():
-            song = await common.run_blocking(self.__enqueue, self.bot, link)
+            song = await self.__enqueue(link)
 
         embed = common.create_embed({
             'title': 'Added to queue',
@@ -298,10 +301,14 @@ class Music(commands.Cog):
         })
         await ctx.send(embed=embed)
 
-    def __enqueue(self, link):
+    def __download(self, url):
+        with YoutubeDL(self.youtube_dl_options) as ydl:
+            ydl.download([url])
+
+    async def __enqueue(self, link):
         with YoutubeDL(self.youtube_dl_options) as ydl:
             if common.has_url(link):
-                info = ydl.extract_info(link)
+                info = ydl.extract_info(link, download=False)
 
                 if 'entries' in info:
                     for track in info['entries']:
@@ -309,8 +316,15 @@ class Music(commands.Cog):
                 else:
                     self.queue.append(info)
             else:
-                info = ydl.extract_info(f'ytsearch1:{link}')['entries'][0]
+                info = ydl.extract_info(f'ytsearch1:{link}', download=False)['entries'][0]
                 self.queue.append(info)
+
+        process = Process(target=self.__download, args=(info['webpage_url'],))
+        process.start()
+
+        song_path = os.path.join(self.path, info['id'])
+        while not os.path.exists(song_path):
+            await asyncio.sleep(1)
 
         return info
         
