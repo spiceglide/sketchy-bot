@@ -70,6 +70,9 @@ class Music(commands.Cog):
         queue = self.queue
 
         def next(error):
+            if not client or not client.is_connected():
+                return
+
             if self.loop:
                 audio = self.__play()
                 client.play(audio, after=next)
@@ -282,7 +285,11 @@ class Music(commands.Cog):
     @commands.command(aliases=['rm', 'x'])
     async def remove(self, ctx, number):
         """Removes a specified song from the queue."""
+        if int(number) >= len(self.queue):
+            return
+
         song = self.queue.pop(int(number))
+
         embed = common.create_embed({
             'title': 'Queue',
             'description': f'Removed [{song["title"]}]({song["webpage_url"]})'
@@ -324,8 +331,11 @@ class Music(commands.Cog):
         return info
         
     def __dequeue(self):
+        if len(self.queue) == 0:
+            return
+
         if self.loop:
-            pass
+            return
         elif self.loop_queue:
             song = self.queue.pop(0)
             self.queue.append(song)
@@ -337,6 +347,9 @@ class Music(commands.Cog):
             song = self.queue.pop(0)
     
     def __play(self):
+        if len(self.queue) == 0:
+            return
+
         current_song = self.queue[0]
         song_path = os.path.join(self.path, current_song["id"])
         options = self.ffmpeg_options.copy()
