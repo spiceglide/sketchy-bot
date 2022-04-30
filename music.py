@@ -19,7 +19,10 @@ class Music(commands.Cog):
 
         self.refresh()
 
-        self.ffmpeg_options = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
+        self.ffmpeg_options = {
+            'before_options': '',
+            'options': '-reconnect_streamed 1 -reconnect_delay_max 5 -vn',
+        }
         self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{self.path}/%(id)s', 'quiet': True}
 
     def refresh(self):
@@ -327,24 +330,16 @@ class Music(commands.Cog):
     def __play(self):
         current_song = self.queue[0]
         song_path = f'{self.path}/{current_song["id"]}'
+        options = self.ffmpeg_options.copy()
 
         if self.nightcore:
-            if not os.path.exists(f'{song_path}-nightcore'):
-                filter = 'aformat=channel_layouts=stereo,asetrate=44100*4/3'
-                subprocess.call(['ffmpeg', '-i', song_path, '-af', filter, '-f', 'webm', '-nostats', '-loglevel', '0', f'{song_path}-nightcore'])
-            song_path += '-nightcore'
-        if self.vaporwave:
-            if not os.path.exists(f'{song_path}-vaporwave'):
-                filter = 'aformat=channel_layouts=stereo,asetrate=44100*3/4'
-                subprocess.call(['ffmpeg', '-i', song_path, '-af', filter, '-f', 'webm', '-nostats', '-loglevel', '0', f'{song_path}-vaporwave'])
-            song_path += '-vaporwave'
+            options['options'] += ' -af "aformat=channel_layouts=stereo,asetrate=44100*4/3"'
+        elif self.vaporwave:
+            options['options'] += ' -af "aformat=channel_layouts=stereo,asetrate=44100*5/8"'
         elif self.bass_boosted:
-            if not os.path.exists(f'{song_path}-bass'):
-                filter = 'bass=g=12'
-                subprocess.call(['ffmpeg', '-i', song_path, '-af', filter, '-f', 'webm', '-nostats', '-loglevel', '0', f'{song_path}-bass'])
-            song_path += '-bass'
+            options['options'] += ' -af "bass=g=12"'
 
-        return discord.FFmpegPCMAudio(song_path, options=self.ffmpeg_options)
+        return discord.FFmpegOpusAudio(song_path, **options)
 
     def __clear(self):
         self.queue = []
