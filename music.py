@@ -2,6 +2,7 @@ import common
 
 import os
 import random
+import subprocess
 import logging
 
 import discord
@@ -62,20 +63,20 @@ class Music(commands.Cog):
 
         def next(error):
             if self.loop:
-                audio = self.old_play()
+                audio = self.__play()
                 client.play(audio, after=next)
             else:
                 if self.skipping:
                     self.skipping = False
                 else:
-                    self.old_dequeue()
+                    self.__dequeue()
 
                 if len(queue) > 0:
-                    audio = self.old_play()
+                    audio = self.__play()
                     client.play(audio, after=next)
 
         async with ctx.channel.typing():
-            song = await common.run_blocking(self.old_enqueue, self.bot, link)
+            song = await common.run_blocking(self.__enqueue, self.bot, link)
 
         embed = common.create_embed({
             'title': 'Added to queue',
@@ -84,7 +85,7 @@ class Music(commands.Cog):
         await ctx.send(embed=embed)
 
         if not client.is_playing():
-            audio = self.old_play()
+            audio = self.__play()
             client.play(audio, after=next)
 
     @commands.command()
@@ -243,7 +244,7 @@ class Music(commands.Cog):
 
         async with ctx.channel.typing():
             client = ctx.message.guild.voice_client
-            self.old_dequeue()
+            self.__dequeue()
             client.stop()
 
         embed = common.create_embed({
@@ -260,7 +261,7 @@ class Music(commands.Cog):
         async with ctx.channel.typing():
             client = ctx.message.guild.voice_client
             for skip in range(int(number)):
-                self.old_dequeue()
+                self.__dequeue()
             client.stop()
 
         song = self.queue[0]
@@ -286,7 +287,7 @@ class Music(commands.Cog):
         async with ctx.channel.typing():
             client = ctx.message.guild.voice_client
             client.stop()
-            self.old_clear()
+            self.__clear()
 
         embed = common.create_embed({
             'title': 'Queue',
@@ -294,7 +295,7 @@ class Music(commands.Cog):
         })
         await ctx.send(embed=embed)
 
-    def old_enqueue(self, link):
+    def __enqueue(self, link):
         with YoutubeDL(self.youtube_dl_options) as ydl:
             if common.has_url(link):
                 info = ydl.extract_info(link)
@@ -310,7 +311,7 @@ class Music(commands.Cog):
 
         return info
         
-    def old_dequeue(self):
+    def __dequeue(self):
         if self.loop:
             pass
         elif self.loop_queue:
@@ -323,29 +324,29 @@ class Music(commands.Cog):
         else:
             song = self.queue.pop(0)
     
-    def old_play(self):
+    def __play(self):
         current_song = self.queue[0]
         song_path = f'{self.path}/{current_song["id"]}'
 
         if self.nightcore:
             if not os.path.exists(f'{song_path}-nightcore'):
                 filter = 'aformat=channel_layouts=stereo,asetrate=44100*4/3'
-                os.system(f'ffmpeg -i {song_path} -af "{filter}" -f webm -nostats -loglevel 0 {song_path}-nightcore')
+                subprocess.call(['ffmpeg', '-i', song_path, '-af', filter, '-f', 'webm', '-nostats', '-loglevel', '0', f'{song_path}-nightcore'])
             song_path += '-nightcore'
         if self.vaporwave:
             if not os.path.exists(f'{song_path}-vaporwave'):
                 filter = 'aformat=channel_layouts=stereo,asetrate=44100*3/4'
-                os.system(f'ffmpeg -i {song_path} -af "{filter}" -f webm -nostats -loglevel 0 {song_path}-vaporwave')
+                subprocess.call(['ffmpeg', '-i', song_path, '-af', filter, '-f', 'webm', '-nostats', '-loglevel', '0', f'{song_path}-vaporwave'])
             song_path += '-vaporwave'
         elif self.bass_boosted:
             if not os.path.exists(f'{song_path}-bass'):
                 filter = 'bass=g=12'
-                os.system(f'ffmpeg -i {song_path} -af "{filter}" -f webm -nostats -loglevel 0 {song_path}-bass')
+                subprocess.call(['ffmpeg', '-i', song_path, '-af', filter, '-f', 'webm', '-nostats', '-loglevel', '0', f'{song_path}-bass'])
             song_path += '-bass'
 
         return discord.FFmpegPCMAudio(song_path, options=self.ffmpeg_options)
 
-    def old_clear(self):
+    def __clear(self):
         self.queue = []
         for file in os.listdir(self.path):
             os.remove(f'{self.path}/{file}')
