@@ -13,6 +13,8 @@ from yt_dlp import YoutubeDL
 logging.basicConfig(filename='log.txt', level=logging.INFO)
 
 class Music(commands.Cog):
+    download_process = None
+
     def __init__(self, bot, settings):
         self.bot = bot
         self.settings = settings
@@ -319,13 +321,6 @@ class Music(commands.Cog):
                 info = ydl.extract_info(f'ytsearch1:{link}', download=False)['entries'][0]
                 self.queue.append(info)
 
-        process = Process(target=self.__download, args=(info['webpage_url'],))
-        process.start()
-
-        song_path = os.path.join(self.path, info['id'])
-        while not os.path.exists(song_path):
-            await asyncio.sleep(1)
-
         return info
         
     def __dequeue(self):
@@ -343,7 +338,7 @@ class Music(commands.Cog):
     
     def __play(self):
         current_song = self.queue[0]
-        song_path = f'{self.path}/{current_song["id"]}'
+        song_path = os.path.join(self.path, current_song["id"])
         options = self.ffmpeg_options.copy()
 
         if self.nightcore:
@@ -352,6 +347,15 @@ class Music(commands.Cog):
             options['options'] += ' -af "asetrate=44100*3/4"'
         elif self.bass_boosted:
             options['options'] += ' -af "bass=g=12"'
+
+        if self.download_process:
+            self.download_process.join()
+        self.download_process = Process(target=self.__download, args=(current_song['webpage_url'],))
+        self.download_process.start()
+
+        song_path = os.path.join(self.path, current_song['id'])
+        while not os.path.exists(song_path):
+            continue
 
         return discord.FFmpegOpusAudio(song_path, **options)
 
