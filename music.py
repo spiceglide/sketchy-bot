@@ -333,9 +333,9 @@ class Music(commands.Cog):
         options = self.ffmpeg_options.copy()
 
         if self.nightcore:
-            options['options'] += ' -af "aformat=channel_layouts=stereo,asetrate=44100*4/3"'
+            options['options'] += ' -af "asetrate=44100*4/3"'
         elif self.vaporwave:
-            options['options'] += ' -af "aformat=channel_layouts=stereo,asetrate=44100*5/8"'
+            options['options'] += ' -af "asetrate=44100*3/4"'
         elif self.bass_boosted:
             options['options'] += ' -af "bass=g=12"'
 
