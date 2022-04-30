@@ -23,7 +23,7 @@ class Music(commands.Cog):
             'before_options': '',
             'options': '-reconnect_streamed 1 -reconnect_delay_max 5 -vn',
         }
-        self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{self.path}/%(id)s', 'quiet': True}
+        self.youtube_dl_options = {'format': 'bestaudio', 'outtmpl': f'{self.path}/%(id)s', 'no-part': True, 'quiet': True}
 
     def refresh(self):
         self.queue = []
