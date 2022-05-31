@@ -80,6 +80,7 @@ class Admin(commands.Cog):
         await ctx.message.add_reaction('👍')
         logging.info(f'Member {member} approved')
 
+    @commands.command()
     @commands.has_permissions(manage_roles=True)
     async def puppet(self, ctx, channel, *message):
         """Put words in Sketchy's mouth."""
